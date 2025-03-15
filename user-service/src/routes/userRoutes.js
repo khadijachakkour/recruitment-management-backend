@@ -1,6 +1,5 @@
 const express = require("express");
 const { register, login } = require("../controllers/userController");
-const keycloakAuth = require("../middleware/keycloakAuth");
 
 const router = express.Router();
 

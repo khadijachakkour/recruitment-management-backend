@@ -1,17 +1,14 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const { createUserInKeycloak } = require("../services/keycloakService");  // 🔹 Import de la fonction Keycloak
+const { createUserInKeycloak, assignRoleToUser } = require("../services/keycloakService");
 
 
 // Inscription d'un utilisateur
 const register = async (req, res) => {
   try {
-    const { firstname, lastname, username, email, password, role } = req.body;
+    const { firstname, lastname, username, email, password} = req.body;
 
-    if (!["ADMIN", "CANDIDATE", "RECRUITER", "MANAGER", "RH"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -22,7 +19,6 @@ const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role,
     });
 
     // 🔹 2. Création de l'utilisateur dans Keycloak

@@ -1,3 +1,4 @@
+//configuration de Keycloak Connect pour protéger l'application en utilisant des sessions
 const Keycloak = require("keycloak-connect");
 const session = require("express-session");
 require("dotenv").config({ path: __dirname + "/.env" });
@@ -14,4 +15,4 @@ const keycloak = new Keycloak({ store: memoryStore }, {
   },
 });
 
-module.exports = keycloak;
+module.exports = { keycloak, memoryStore };

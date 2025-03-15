@@ -18,7 +18,6 @@ const User = sequelize.define("User", {
   username: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
   },
   email: {
     type: DataTypes.STRING,
@@ -29,10 +28,10 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  role: {
-    type: DataTypes.ENUM("ADMIN","CANDIDATE", "RECRUITER","MANAGER","RH"),
+  /*role: {
+    type: DataTypes.ENUM("Admin","Candidat", "Recruteur","Manager","RH"),
     allowNull: false,
-  },
+  },*/
 });
 
 module.exports = User;

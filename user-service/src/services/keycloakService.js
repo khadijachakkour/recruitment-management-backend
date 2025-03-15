@@ -1,34 +1,34 @@
 const axios = require('axios');
 require("dotenv").config();
 
-// Fonction pour obtenir un Access Token avec client_credentials
+// Fonction pour pour s'authentifier en tant que client keycloak et obtenir un token d'accès avec client_credentials
 async function authenticateClient() {
   try {
     const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
       new URLSearchParams({
-        grant_type: 'client_credentials', // Utilisation du grant_type client_credentials
-        client_id: process.env.KEYCLOAK_CLIENT_ID,  // ID du client
-        client_secret: process.env.KEYCLOAK_CLIENT_SECRET,  // Secret du client
+        grant_type: 'client_credentials', 
+        client_id: process.env.KEYCLOAK_CLIENT_ID, 
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET,  
       }),
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Nécessaire pour POST
+          'Content-Type': 'application/x-www-form-urlencoded', 
         },
       }
     );
     
-    // Afficher le token d'accès obtenu
+    // Afficher le token (Ce Token est nécessaire pour effectuer des requêtes API Admin dans Keycloak)
     console.log('Access Token:', response.data.access_token);
-    return response.data.access_token; // Retourne le token d'accès
+    return response.data.access_token; 
 
   } catch (error) {
     console.error('Erreur lors de l\'authentification avec Keycloak:', error.response ? error.response.data : error.message);
-    throw error; // Propagation de l'erreur pour gestion dans l'appelant
+    throw error; 
   }
 }
 
-// Exemple d'utilisation pour créer un utilisateur (après authentification)
+//Créer un utilisateur 
 async function createUserInKeycloak(userData) {
   try {
     const token = await authenticateClient(); // Authentification avec client_credentials
