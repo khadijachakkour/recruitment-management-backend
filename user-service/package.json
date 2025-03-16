@@ -1,18 +1,19 @@
 {
   "name": "user-service",
   "version": "1.0.0",
-  "main": "src/server.js",
+  "description": "User service for managing users with Keycloak integration",
+  "main": "server.ts", 
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node dist/src/server.js", 
+    "build": "tsc", 
+    "dev": "nodemon --exec ts-node src/server.ts" 
   },
   "keywords": [],
-  "author": "",
+  "author": "Ton Nom", 
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@keycloak/keycloak-admin-client": "^26.1.3",
+    "@keycloak/keycloak-admin-client": "^26.1.3", 
     "axios": "^1.8.3",
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
@@ -21,8 +22,6 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
-    "keycloak-admin": "^1.14.22",
-    "keycloak-admin-client": "^0.12.0",
     "keycloak-connect": "^26.1.1",
     "morgan": "^1.10.0",
     "pg": "^8.14.0",
@@ -30,6 +29,17 @@
     "sequelize": "^6.37.6"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/keycloak-connect": "^4.5.4",
+    "@types/node": "^22.13.10",
+    "@types/pg": "^8.11.11",
+    "@types/sequelize": "^4.28.20",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   }
 }
