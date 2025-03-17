@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticateClient = authenticateClient;
 exports.createUserInKeycloak = createUserInKeycloak;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -40,10 +39,11 @@ function authenticateClient() {
 }
 function createUserInKeycloak(userData) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         try {
             const token = yield authenticateClient();
-            yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
+            // Création de l'utilisateur
+            const response = yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
                 username: userData.username,
                 email: userData.email,
                 firstName: userData.firstname,
@@ -53,10 +53,24 @@ function createUserInKeycloak(userData) {
             }, {
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             });
-            console.log("Utilisateur créé avec succès dans Keycloak");
+            // Récupérer l'ID de l'utilisateur Keycloak
+            const userId = (_a = response.headers.location) === null || _a === void 0 ? void 0 : _a.split("/").pop();
+            if (!userId)
+                throw new Error("Utilisateur créé mais ID introuvable.");
+            // Récupérer le rôle depuis Keycloak
+            const rolesResponse = yield axios_1.default.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/${userData.role}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const roleObject = rolesResponse.data; // Récupérer l'objet complet du rôle
+            // Assigner le rôle à l'utilisateur
+            yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`, [roleObject], // ✅ Keycloak attend l'objet complet du rôle
+            {
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            console.log(`Utilisateur ${userData.username} inscrit avec le rôle ${userData.role}`);
         }
         catch (error) {
-            console.error("Erreur lors de la création de l'utilisateur dans Keycloak:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error("Erreur lors de la création de l'utilisateur dans Keycloak:", ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
             throw error;
         }
     });

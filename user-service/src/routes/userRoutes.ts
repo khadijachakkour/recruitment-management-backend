@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { register } from "../controllers/userController";
-
+import { registerAdmin,registerCandidat } from "../controllers/userController";
 const router = Router();
 
-router.post("/register", register);
+// Route pour l'inscription des candidats
+router.post("/register/candidat", registerCandidat);
+
+// Route pour l'inscription des admins (entreprises)
+router.post("/register/entreprise", registerAdmin);
 
 export default router;

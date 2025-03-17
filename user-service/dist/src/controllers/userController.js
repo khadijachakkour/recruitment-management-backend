@@ -9,17 +9,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.register = void 0;
+exports.registerAdmin = exports.registerCandidat = void 0;
 const keycloakService_1 = require("../services/keycloakService");
-const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// Inscription d'un candidat (assignation automatique du rôle "Candidat")
+const registerCandidat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstname, lastname, username, email, password } = req.body;
-        yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password });
-        res.status(201).json({ message: "Utilisateur inscrit avec succès dans Keycloak" });
+        const role = "Candidat"; // Assignation automatique du rôle
+        yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
+        res.status(201).json({ message: "Candidat inscrit avec succès" });
     }
     catch (error) {
-        console.error("Erreur lors de l'inscription:", error);
-        res.status(500).json({ message: "Erreur d'inscription", error });
+        res.status(500).json({ message: "Erreur d'inscription du candidat", error });
     }
 });
-exports.register = register;
+exports.registerCandidat = registerCandidat;
+// Inscription d'un admin entreprise (assignation automatique du rôle "Admin")
+const registerAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { firstname, lastname, username, email, password } = req.body;
+        const role = "Admin"; // Assignation automatique du rôle
+        yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
+        res.status(201).json({ message: "Admin inscrit avec succès" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Erreur d'inscription de l'admin", error });
+    }
+});
+exports.registerAdmin = registerAdmin;

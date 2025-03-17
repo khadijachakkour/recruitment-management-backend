@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export async function authenticateClient(): Promise<string> {
+async function authenticateClient(): Promise<string> {
   try {
     const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
@@ -32,11 +32,13 @@ export async function createUserInKeycloak(userData: {
   username: string;
   email: string;
   password: string;
+  role: string;
 }): Promise<void> {
   try {
     const token = await authenticateClient();
 
-    await axios.post(
+    // Création de l'utilisateur
+    const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
       {
         username: userData.username,
@@ -51,7 +53,32 @@ export async function createUserInKeycloak(userData: {
       }
     );
 
-    console.log("Utilisateur créé avec succès dans Keycloak");
+    // Récupérer l'ID de l'utilisateur Keycloak
+    const userId = response.headers.location?.split("/").pop();
+
+    if (!userId) throw new Error("Utilisateur créé mais ID introuvable.");
+
+    // Récupérer le rôle depuis Keycloak
+const rolesResponse = await axios.get(
+  `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/${userData.role}`,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
+const roleObject = rolesResponse.data; // Récupérer l'objet complet du rôle
+
+// Assigner le rôle à l'utilisateur
+await axios.post(
+  `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
+  [roleObject], // ✅ Keycloak attend l'objet complet du rôle
+  {
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  }
+);
+
+
+    console.log(`Utilisateur ${userData.username} inscrit avec le rôle ${userData.role}`);
   } catch (error: any) {
     console.error("Erreur lors de la création de l'utilisateur dans Keycloak:", error.response?.data || error.message);
     throw error;
