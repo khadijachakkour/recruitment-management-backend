@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUserInKeycloak = createUserInKeycloak;
+exports.requireRole = requireRole;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -74,4 +75,18 @@ function createUserInKeycloak(userData) {
             throw error;
         }
     });
+}
+function requireRole(role) {
+    return (req, res, next) => {
+        var _a, _b;
+        if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+            return res.status(401).json({ message: "Utilisateur non authentifié" });
+        }
+        const roles = ((_b = (_a = req.kauth.grant.access_token.content) === null || _a === void 0 ? void 0 : _a.realm_access) === null || _b === void 0 ? void 0 : _b.roles) || [];
+        console.log("Rôles de l'utilisateur :", roles);
+        if (!roles.includes(role)) {
+            return res.status(403).json({ message: "Accès refusé, rôle insuffisant." });
+        }
+        next();
+    };
 }

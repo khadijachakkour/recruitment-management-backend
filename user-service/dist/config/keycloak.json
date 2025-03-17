@@ -1,0 +1,10 @@
+{
+  "realm": "AppRecrutement",
+  "auth-server-url": "http://localhost:8080/",
+  "ssl-required": "external",
+  "resource": "backend-client",
+  "credentials": {
+    "secret": "4gBZ3h14o6LbKGt3t5E2I8BViQDG803m"
+  },
+  "confidential-port": 0
+}

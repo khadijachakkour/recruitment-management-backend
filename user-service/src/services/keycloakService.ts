@@ -84,3 +84,26 @@ await axios.post(
     throw error;
   }
 }
+
+//Un middleware Express qui permet de restreindre l'accès à certaines routes en fonction du rôle de l'utilisateur
+export function requireRole(role: string) {
+  return (req: any, res: any, next: any) => {
+      if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
+          return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+
+      const roles: string[] = req.kauth.grant.access_token.content?.realm_access?.roles || [];
+
+      console.log("Rôles de l'utilisateur :", roles);
+
+      if (!roles.includes(role)) {
+          return res.status(403).json({ message: "Accès refusé, rôle insuffisant." });
+      }
+
+      next();
+  };
+}
+
+
+
+
