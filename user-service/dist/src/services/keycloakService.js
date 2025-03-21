@@ -76,6 +76,7 @@ function createUserInKeycloak(userData) {
         }
     });
 }
+//Un middleware Express qui permet de restreindre l'accès à certaines routes en fonction du rôle de l'utilisateur
 function requireRole(role) {
     return (req, res, next) => {
         var _a, _b;
