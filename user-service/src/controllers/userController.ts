@@ -64,8 +64,7 @@ export const loginWithEmail = async (req: Request, res: Response, next: NextFunc
       httpOnly: true,
       secure: false,
       path: "/",
-
-      sameSite: "none",
+      sameSite: "lax",
     });
 
     res.status(200).json({ access_token });
@@ -104,7 +103,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
       httpOnly: true,
       secure: false,
       path: "/",
-      sameSite: "none",
+      sameSite: "lax",
     });
 
     res.status(200).json({ access_token: response.data.access_token });
