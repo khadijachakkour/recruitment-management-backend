@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import axios from "axios";
 import {createUserInKeycloak } from "../services/keycloakService";
 import dotenv from "dotenv";
@@ -33,48 +33,91 @@ export const registerAdmin = async (req: Request, res: Response) => {
   }
 };
 
-/// Fonction de login avec email et mot de passe
-export const loginWithEmail = async (req: Request, res: Response): Promise<void> => {
+
+export const loginWithEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
-       res.status(400).json({ message: "Email et mot de passe sont requis." });
+      res.status(400).json({ message: "Email et mot de passe sont requis." });
+      return;
     }
 
-    // Demande un token d'accès à Keycloak
+    const params = new URLSearchParams({
+      grant_type: "password",
+      client_id: process.env.KEYCLOAK_CLIENT_ID as string,
+      client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
+      username: email,
+      password: password,
+    });
+
+    // Effectuer la requête à Keycloak
     const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-      new URLSearchParams({
-        grant_type: "password", 
-        client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-        client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-        username: email, 
-        password: password,
-      }),
+      params,
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    // Si la connexion réussie, retourner les tokens d'accès
-    res.status(200).json({
-      message: "Connexion réussie",
-      access_token: response.data.access_token,  // Token d'accès
-      refresh_token: response.data.refresh_token, // Token de rafraîchissement
-    });
-  } catch (error: any) {
-    // Gestion des erreurs
-    console.error("Erreur lors de la connexion avec Keycloak:", error.response?.data || error.message);
+    const { access_token, refresh_token } = response.data;
 
-    // Vérification de l'erreur, message plus précis en fonction du code d'erreur
-    if (error.response?.status === 400) {
-       res.status(400).json({
-        message: "Identifiants invalides, veuillez vérifier votre email et mot de passe.",
-      });
+    // Définir un cookie sécurisé pour le refresh token
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+
+      sameSite: "none",
+    });
+
+    res.status(200).json({ access_token });
+  } catch (error: any) {
+    if (axios.isAxiosError(error) && error.response) {
+      res.status(error.response.status).json({ message: error.response.data.error_description || "Erreur d'authentification." });
+    } else {
+      res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+  }
+};
+
+// Rafraîchir le token
+export const refreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+    if (!refreshToken) {
+      res.status(401).json({ message: "Non autorisé" });
+      return;
     }
 
-     res.status(error.response?.status || 500).json({
-      message: "Échec de la connexion",
-      error: error.response?.data || error.message,
+    const params = new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: process.env.KEYCLOAK_CLIENT_ID as string,
+      client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
+      refresh_token: refreshToken,
     });
+
+    const response = await axios.post(
+      `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      params,
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    res.cookie("refresh_token", response.data.refresh_token, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      sameSite: "none",
+    });
+
+    res.status(200).json({ access_token: response.data.access_token });
+  } catch (error: any) {
+    if (axios.isAxiosError(error) && error.response) {
+      if (error.response.status === 400 && error.response.data.error === "invalid_grant") {
+        res.clearCookie("refresh_token", { path: "/api/users/refresh-token" }); 
+        res.status(401).json({ message: "Session expirée, veuillez vous reconnecter." });
+      } else {
+        res.status(error.response.status).json({ message: error.response.data.error_description || "Erreur d'authentification." });
+      }
+    } else {
+      res.status(500).json({ message: "Erreur interne du serveur." });
+    }
   }
 };

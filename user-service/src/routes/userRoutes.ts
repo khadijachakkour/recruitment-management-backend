@@ -1,7 +1,5 @@
 import { Router } from "express";
-import { keycloak } from "../../config/keycloak-config";
-import {loginWithEmail, registerAdmin,registerCandidat } from "../controllers/userController";
-import { requireRole } from "../services/keycloakService";
+import {loginWithEmail, refreshToken, registerAdmin,registerCandidat } from "../controllers/userController";
 
 const router = Router();
 
@@ -14,20 +12,7 @@ router.post("/register/entreprise", registerAdmin);
 
 router.post("/login", loginWithEmail);
 
-router.get("/x", keycloak.protect('Candidat'), (req, res) => {
-    // Si l'utilisateur est authentifié, on peut accéder à ses données
-    if (req.kauth && req.kauth.grant) {
-        const user = req.kauth.grant.access_token.content;  // Vous pouvez adapter ce champ selon vos besoins
-        res.status(200).json({ message: "Votre profil utilisateur" });
-    } else {
-        res.status(401).json({ message: "Utilisateur non authentifié" });
-    }
-});
-
-// Route protégée accessible uniquement aux candidats
-router.get("/profile", keycloak.protect(), requireRole("Candidat"), (req, res) => {
-    res.status(200).json({ message: "Bienvenue Candidat !" });
-});
+router.post("/refresh-token", refreshToken);
 
 
 export default router;

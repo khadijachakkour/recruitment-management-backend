@@ -66,12 +66,12 @@ const rolesResponse = await axios.get(
   }
 );
 
-const roleObject = rolesResponse.data; // Récupérer l'objet complet du rôle
+const roleObject = rolesResponse.data; 
 
 // Assigner le rôle à l'utilisateur
 await axios.post(
   `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
-  [roleObject], // ✅ Keycloak attend l'objet complet du rôle
+  [roleObject], 
   {
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   }
@@ -103,7 +103,3 @@ export function requireRole(role: string) {
       next();
   };
 }
-
-
-
-

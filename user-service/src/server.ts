@@ -1,28 +1,25 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import session from "express-session";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
-import { keycloak } from "../config/keycloak-config"; // Importer la configuration Keycloak
+import cookieParser from "cookie-parser";
+import { requireRole } from "./services/keycloakService";
 
 dotenv.config();
 
 const app = express();
 
-// Utilisation des middlewares nécessaires
-app.use(cors());
+// Configuration des middlewares
+app.use(cors({ credentials: true, origin: "http://localhost:3000" })); // Autoriser les cookies cross-origin
 app.use(bodyParser.json());
-app.use(session({ secret: "mysecret", resave: false, saveUninitialized: true }));
+app.use(cookieParser());
 
-// Keycloak middleware pour sécuriser l'application
-app.use(keycloak.middleware());
-
-// Routes utilisateurs - Inscription, connexion
+// Déclarer les routes
 app.use("/api/users", userRoutes);
 
 
-
+// Lancer le serveur
 app.listen(process.env.PORT, () => {
   console.log(`🚀 Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
 });
