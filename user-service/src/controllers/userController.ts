@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import axios from "axios";
 import {createUserInKeycloak } from "../services/keycloakService";
 import dotenv from "dotenv";
+import UserProfile from "../models/UserProfile";
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ export const registerCandidat = async (req: Request, res: Response) => {
     const role = "Candidat"; // Assignation automatique du rôle
 
     await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+
+    // Créer un profil vide dans PostgreSQL
+    await UserProfile.create({ user_id: username });
 
     res.status(201).json({ message: "Candidat inscrit avec succès" });
   } catch (error) {

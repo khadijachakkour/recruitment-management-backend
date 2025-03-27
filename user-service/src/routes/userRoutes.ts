@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {loginWithEmail, refreshToken, registerAdmin,registerCandidat } from "../controllers/userController";
+import { getProfile, updateProfile } from "../controllers/profileController";
 
 const router = Router();
 
@@ -13,6 +14,13 @@ router.post("/register/entreprise", registerAdmin);
 router.post("/login", loginWithEmail);
 
 router.post("/refresh-token", refreshToken);
+
+
+// Route pour récupérer le profil utilisateur
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
+
+
 
 
 export default router;

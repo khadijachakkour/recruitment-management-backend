@@ -14,8 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUserInKeycloak = createUserInKeycloak;
 exports.requireRole = requireRole;
+exports.getUserIdFromToken = getUserIdFromToken;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
 function authenticateClient() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -62,10 +64,9 @@ function createUserInKeycloak(userData) {
             const rolesResponse = yield axios_1.default.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/${userData.role}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const roleObject = rolesResponse.data; // Récupérer l'objet complet du rôle
+            const roleObject = rolesResponse.data;
             // Assigner le rôle à l'utilisateur
-            yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`, [roleObject], // ✅ Keycloak attend l'objet complet du rôle
-            {
+            yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`, [roleObject], {
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             });
             console.log(`Utilisateur ${userData.username} inscrit avec le rôle ${userData.role}`);
@@ -83,6 +84,8 @@ function requireRole(role) {
         if (!req.kauth || !req.kauth.grant || !req.kauth.grant.access_token) {
             return res.status(401).json({ message: "Utilisateur non authentifié" });
         }
+        const tokenPayload = req.kauth.grant.access_token.content;
+        console.log("Payload du token:", JSON.stringify(tokenPayload, null, 2));
         const roles = ((_b = (_a = req.kauth.grant.access_token.content) === null || _a === void 0 ? void 0 : _a.realm_access) === null || _b === void 0 ? void 0 : _b.roles) || [];
         console.log("Rôles de l'utilisateur :", roles);
         if (!roles.includes(role)) {
@@ -90,4 +93,18 @@ function requireRole(role) {
         }
         next();
     };
+}
+function getUserIdFromToken(req) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader)
+        return null;
+    const token = authHeader.split(" ")[1];
+    try {
+        const decoded = jsonwebtoken_1.default.decode(token);
+        return (decoded === null || decoded === void 0 ? void 0 : decoded.sub) || null;
+    }
+    catch (error) {
+        console.error("Erreur de décodage du token:", error);
+        return null;
+    }
 }

@@ -1,33 +1,38 @@
-import express, { Request, Response } from "express";
+import express, {Request, Response } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
 import cookieParser from "cookie-parser";
 import axios from "axios";
+import sequelize from "../config/dbConfig";
+
 
 dotenv.config();
 
 const app = express();
 
 // Configuration des middlewares
-app.use(cors({ credentials: true, origin: "http://localhost:3000" })); // Autoriser les cookies cross-origin
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(express.json());
 
 // Déclarer les routes
 app.use("/api/users", userRoutes);
 
+
+// Route de déconnexion
 app.post("/logout", (req: Request, res: Response): void => {
   (async () => {
     try {
       const refreshToken = req.cookies?.refresh_token;
-  
+
       if (!refreshToken) {
         res.status(400).json({ message: "Aucun refresh token trouvé" });
         return;
       }
-  
+
       await axios.post(
         `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout`,
         new URLSearchParams({
@@ -37,7 +42,7 @@ app.post("/logout", (req: Request, res: Response): void => {
         }),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
-  
+
       res.clearCookie("refresh_token", { httpOnly: true, path: "/" });
       res.status(200).json({ message: "Déconnexion réussie" });
     } catch (error: any) {
@@ -46,6 +51,18 @@ app.post("/logout", (req: Request, res: Response): void => {
     }
   })();
 });
+
+// Synchroniser la base de données
+const syncDb = async () => {
+  try {
+    await sequelize.sync({ alter: true });
+    console.log("Base de données synchronisée !");
+  } catch (error) {
+    console.error("Erreur de synchronisation de la base de données : ", error);
+  }
+};
+
+syncDb();
 
 // Lancer le serveur
 app.listen(process.env.PORT, () => {

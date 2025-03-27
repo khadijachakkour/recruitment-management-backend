@@ -16,6 +16,7 @@ exports.refreshToken = exports.loginWithEmail = exports.registerAdmin = exports.
 const axios_1 = __importDefault(require("axios"));
 const keycloakService_1 = require("../services/keycloakService");
 const dotenv_1 = __importDefault(require("dotenv"));
+const UserProfile_1 = __importDefault(require("../models/UserProfile"));
 dotenv_1.default.config();
 // Inscription d'un candidat (assignation automatique du rôle "Candidat")
 const registerCandidat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -23,6 +24,8 @@ const registerCandidat = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const { firstname, lastname, username, email, password } = req.body;
         const role = "Candidat"; // Assignation automatique du rôle
         yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
+        // Créer un profil vide dans PostgreSQL
+        yield UserProfile_1.default.create({ user_id: username });
         res.status(201).json({ message: "Candidat inscrit avec succès" });
     }
     catch (error) {
@@ -43,63 +46,6 @@ const registerAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.registerAdmin = registerAdmin;
-// // Fonction de login avec email et mot de passe
-// export const loginWithEmail = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { email, password } = req.body;
-//     if (!email || !password) {
-//        res.status(400).json({ message: "Email et mot de passe sont requis." });
-//     }
-//     // Demande un token d'accès à Keycloak
-//     const response = await axios.post(
-//       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-//       new URLSearchParams({
-//         grant_type: "password", 
-//         client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-//         client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-//         username: email, 
-//         password: password,
-//       }),
-//       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-//     );
-//     const accessToken = response.data.access_token;
-//     const refreshToken = response.data.refresh_token;
-//     // Stocker le refresh token dans un cookie HTTP-Only
-//     res.cookie("refresh_token", refreshToken, {
-//       httpOnly: true, // Empêche l'accès via JavaScript
-//       secure: process.env.NODE_ENV === "production", // Sécurisé en HTTPS
-//       //sameSite: "Strict",
-//       path: "/api/users/refresh-token", // Seulement utilisable pour rafraîchir le token
-//     });
-//     // Retourner uniquement l'access token au frontend
-//     res.status(200).json({ access_token: accessToken });
-//   } catch (error: any) {
-//     console.error("Erreur de connexion Keycloak:", error.response?.data || error.message);
-//     res.status(error.response?.status || 500).json({ message: "Échec de la connexion" });
-//   }
-// };
-// //Endpoint pour rafraîchir l’access token
-// export const refreshToken = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const refreshToken = req.cookies.refresh_token; // Récupérer le refresh token du cookie
-//     if (!refreshToken) res.status(401).json({ message: "Non autorisé" });
-//     // Demander un nouveau token à Keycloak
-//     const response = await axios.post(
-//       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-//       new URLSearchParams({
-//         grant_type: "refresh_token",
-//         client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-//         client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-//         refresh_token: refreshToken,
-//       }),
-//       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-//     );
-//     res.status(200).json({ access_token: response.data.access_token });
-//   } catch (error: any) {
-//     console.error("Erreur lors du rafraîchissement du token:", error.response?.data || error.message);
-//     res.status(401).json({ message: "Refresh token invalide ou expiré" });
-//   }
-// };
 const loginWithEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -107,7 +53,6 @@ const loginWithEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             res.status(400).json({ message: "Email et mot de passe sont requis." });
             return;
         }
-        // Construire les paramètres pour Keycloak
         const params = new URLSearchParams({
             grant_type: "password",
             client_id: process.env.KEYCLOAK_CLIENT_ID,
@@ -121,9 +66,8 @@ const loginWithEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         // Définir un cookie sécurisé pour le refresh token
         res.cookie("refresh_token", refresh_token, {
             httpOnly: true,
-            //secure: process.env.NODE_ENV === "production", // Seulement en HTTPS en prod
             secure: false,
-            path: "/api/users/refresh-token",
+            path: "/",
             sameSite: "lax",
         });
         res.status(200).json({ access_token });
@@ -155,17 +99,16 @@ const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const response = yield axios_1.default.post(`${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`, params, { headers: { "Content-Type": "application/x-www-form-urlencoded" } });
         res.cookie("refresh_token", response.data.refresh_token, {
             httpOnly: true,
-            //secure: process.env.NODE_ENV === "production",
             secure: false,
             path: "/",
-            sameSite: "none",
+            sameSite: "lax",
         });
         res.status(200).json({ access_token: response.data.access_token });
     }
     catch (error) {
         if (axios_1.default.isAxiosError(error) && error.response) {
             if (error.response.status === 400 && error.response.data.error === "invalid_grant") {
-                res.clearCookie("refresh_token", { path: "/api/users/refresh-token" }); // Supprime le refresh token expiré
+                res.clearCookie("refresh_token", { path: "/api/users/refresh-token" });
                 res.status(401).json({ message: "Session expirée, veuillez vous reconnecter." });
             }
             else {

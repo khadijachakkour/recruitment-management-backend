@@ -1,5 +1,8 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import { Request } from "express";
+
 
 dotenv.config();
 
@@ -92,8 +95,10 @@ export function requireRole(role: string) {
           return res.status(401).json({ message: "Utilisateur non authentifié" });
       }
 
-      const roles: string[] = req.kauth.grant.access_token.content?.realm_access?.roles || [];
+      const tokenPayload = req.kauth.grant.access_token.content;
+      console.log("Payload du token:", JSON.stringify(tokenPayload, null, 2));
 
+      const roles: string[] = req.kauth.grant.access_token.content?.realm_access?.roles || [];
       console.log("Rôles de l'utilisateur :", roles);
 
       if (!roles.includes(role)) {
@@ -103,3 +108,20 @@ export function requireRole(role: string) {
       next();
   };
 }
+
+
+export function getUserIdFromToken(req: Request): string | null {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.decode(token) as { sub: string };
+    return decoded?.sub || null;
+  } catch (error) {
+    console.error("Erreur de décodage du token:", error);
+    return null;
+  }
+}
+
+
