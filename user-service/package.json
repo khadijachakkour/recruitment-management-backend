@@ -38,6 +38,7 @@
     "@types/express-session": "^1.18.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/keycloak-connect": "^4.5.4",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.13.10",
     "@types/pg": "^8.11.11",
     "@types/sequelize": "^4.28.20",

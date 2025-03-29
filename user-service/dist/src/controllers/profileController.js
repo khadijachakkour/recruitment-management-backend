@@ -9,10 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfile = exports.getProfile = void 0;
+exports.uploadCv = exports.updateProfile = exports.getProfile = void 0;
 const profileService_1 = require("../services/profileService");
 const keycloakService_1 = require("../services/keycloakService");
-// Récupérer le profil de l'utilisateur
+// Récupérer le profil du candidat
 const getProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = (0, keycloakService_1.getUserIdFromToken)(req);
@@ -28,7 +28,7 @@ const getProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.getProfile = getProfile;
-// Mettre à jour le profil de l'utilisateur
+// Mettre à jour le profil
 const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = (0, keycloakService_1.getUserIdFromToken)(req);
@@ -36,15 +36,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(401).json({ message: "Utilisateur non authentifié" });
             return;
         }
-        const { phone_number, address, experience, education_level, skills, cv_url } = req.body;
-        const updatedProfile = yield (0, profileService_1.updateUserProfile)(userId, {
-            phone_number,
-            address,
-            experience,
-            education_level,
-            skills,
-            cv_url,
-        });
+        const updatedProfile = yield (0, profileService_1.updateUserProfile)(userId, req.body);
         res.status(200).json(updatedProfile);
     }
     catch (error) {
@@ -52,3 +44,26 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.updateProfile = updateProfile;
+// 📌 Téléverser un CV
+const uploadCv = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = (0, keycloakService_1.getUserIdFromToken)(req);
+        if (!userId) {
+            res.status(401).json({ message: "Utilisateur non authentifié" });
+            return;
+        }
+        if (!req.file) {
+            res.status(400).json({ message: "Aucun fichier reçu" });
+            return;
+        }
+        // Générer l'URL du fichier
+        const cvUrl = `/uploads/${req.file.filename}`;
+        // Sauvegarder l'URL du CV en base de données
+        yield (0, profileService_1.saveCvUrl)(userId, cvUrl);
+        res.status(200).json({ message: "CV téléversé avec succès", cv_url: cvUrl });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Erreur lors du téléversement du CV", error });
+    }
+});
+exports.uploadCv = uploadCv;

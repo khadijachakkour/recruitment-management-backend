@@ -13,4 +13,5 @@ router.post("/refresh-token", userController_1.refreshToken);
 // Route pour récupérer le profil utilisateur
 router.get("/profile", profileController_1.getProfile);
 router.put("/profile", profileController_1.updateProfile);
+//router.post("/profile/upload-cv", uploadCv.single("cv"), uploadCv);
 exports.default = router;

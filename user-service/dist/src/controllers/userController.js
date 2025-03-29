@@ -18,17 +18,23 @@ const keycloakService_1 = require("../services/keycloakService");
 const dotenv_1 = __importDefault(require("dotenv"));
 const UserProfile_1 = __importDefault(require("../models/UserProfile"));
 dotenv_1.default.config();
-// Inscription d'un candidat (assignation automatique du rôle "Candidat")
 const registerCandidat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstname, lastname, username, email, password } = req.body;
         const role = "Candidat"; // Assignation automatique du rôle
-        yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
-        // Créer un profil vide dans PostgreSQL
-        yield UserProfile_1.default.create({ user_id: username });
-        res.status(201).json({ message: "Candidat inscrit avec succès" });
+        // Création de l'utilisateur dans Keycloak
+        const keycloakUser = yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
+        if (!keycloakUser || !keycloakUser.id) {
+            res.status(500).json({ message: "Erreur lors de la création de l'utilisateur dans Keycloak" });
+            return; // Retour explicite après envoi de la réponse
+        }
+        const keycloakUserId = keycloakUser.id; // Récupération de l'ID Keycloak
+        // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
+        yield UserProfile_1.default.create({ user_id: keycloakUserId });
+        res.status(201).json({ message: "Candidat inscrit avec succès", user_id: keycloakUserId });
     }
     catch (error) {
+        console.error("Erreur d'inscription du candidat :", error);
         res.status(500).json({ message: "Erreur d'inscription du candidat", error });
     }
 });

@@ -4,38 +4,64 @@ import {createUserInKeycloak } from "../services/keycloakService";
 import dotenv from "dotenv";
 import UserProfile from "../models/UserProfile";
 
+
 dotenv.config();
 
-// Inscription d'un candidat (assignation automatique du rôle "Candidat")
-export const registerCandidat = async (req: Request, res: Response) => {
+
+export const registerCandidat = async (req: Request, res: Response): Promise<void> => {  // Retour de type void, car la réponse est envoyée via res
   try {
     const { firstname, lastname, username, email, password } = req.body;
     const role = "Candidat"; // Assignation automatique du rôle
 
-    await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+    // Création de l'utilisateur dans Keycloak
+    const keycloakUser = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
 
-    // Créer un profil vide dans PostgreSQL
-    await UserProfile.create({ user_id: username });
+    if (!keycloakUser || !keycloakUser.id) {
+      res.status(500).json({ message: "Erreur lors de la création de l'utilisateur dans Keycloak" });
+      return;  // Retour explicite après envoi de la réponse
+    }
 
-    res.status(201).json({ message: "Candidat inscrit avec succès" });
+    const keycloakUserId = keycloakUser.id; // Récupération de l'ID Keycloak
+
+    // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
+    await UserProfile.create({ user_id: keycloakUserId });
+
+    res.status(201).json({ message: "Candidat inscrit avec succès", user_id: keycloakUserId });
   } catch (error) {
+    console.error("Erreur d'inscription du candidat :", error);
     res.status(500).json({ message: "Erreur d'inscription du candidat", error });
   }
 };
 
+
+
+
 // Inscription d'un admin entreprise (assignation automatique du rôle "Admin")
-export const registerAdmin = async (req: Request, res: Response) => {
+export const registerAdmin = async (req: Request, res: Response): Promise<void> => {  // Retour de type void, car la réponse est envoyée via res
   try {
     const { firstname, lastname, username, email, password } = req.body;
     const role = "Admin"; // Assignation automatique du rôle
 
-    await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+    // Création de l'utilisateur dans Keycloak
+    const keycloakUser = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
 
-    res.status(201).json({ message: "Admin inscrit avec succès" });
+    if (!keycloakUser || !keycloakUser.id) {
+      res.status(500).json({ message: "Erreur lors de la création de l'utilisateur dans Keycloak" });
+      return;  // Retour explicite après envoi de la réponse
+    }
+
+    const keycloakUserId = keycloakUser.id; // Récupération de l'ID Keycloak
+
+    // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
+    await UserProfile.create({ user_id: keycloakUserId });
+
+    res.status(201).json({ message: "Candidat inscrit avec succès", user_id: keycloakUserId });
   } catch (error) {
-    res.status(500).json({ message: "Erreur d'inscription de l'admin", error });
+    console.error("Erreur d'inscription du candidat :", error);
+    res.status(500).json({ message: "Erreur d'inscription du candidat", error });
   }
 };
+
 
 
 export const loginWithEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

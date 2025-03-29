@@ -8,19 +8,19 @@ const router = Router();
 router.post("/register/candidat", registerCandidat);
 
 // Route pour l'inscription des admins (entreprises)
-router.post("/register/entreprise", registerAdmin);
+router.post("/register/admin", registerAdmin);
 
 
 router.post("/login", loginWithEmail);
 
 router.post("/refresh-token", refreshToken);
+router.post("/create-company-profile", refreshToken);
+
 
 
 // Route pour récupérer le profil utilisateur
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
-
-
 
 
 export default router;
