@@ -19,7 +19,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const axios_1 = __importDefault(require("axios"));
-const dbConfig_1 = __importDefault(require("../config/dbConfig"));
+const dbConfig_1 = __importDefault(require("./config/dbConfig"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Configuration des middlewares

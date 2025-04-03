@@ -44,11 +44,20 @@ const registerAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { firstname, lastname, username, email, password } = req.body;
         const role = "Admin"; // Assignation automatique du rôle
-        yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
-        res.status(201).json({ message: "Admin inscrit avec succès" });
+        // Création de l'utilisateur dans Keycloak
+        const keycloakUser = yield (0, keycloakService_1.createUserInKeycloak)({ firstname, lastname, username, email, password, role });
+        if (!keycloakUser || !keycloakUser.id) {
+            res.status(500).json({ message: "Erreur lors de la création de l'utilisateur dans Keycloak" });
+            return; // Retour explicite après envoi de la réponse
+        }
+        const keycloakUserId = keycloakUser.id; // Récupération de l'ID Keycloak
+        // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
+        yield UserProfile_1.default.create({ user_id: keycloakUserId });
+        res.status(201).json({ message: "Candidat inscrit avec succès", user_id: keycloakUserId });
     }
     catch (error) {
-        res.status(500).json({ message: "Erreur d'inscription de l'admin", error });
+        console.error("Erreur d'inscription du candidat :", error);
+        res.status(500).json({ message: "Erreur d'inscription du candidat", error });
     }
 });
 exports.registerAdmin = registerAdmin;

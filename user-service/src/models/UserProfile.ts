@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "../../config/dbConfig"; // Le fichier de configuration de Sequelize
+import sequelize from "../config/dbConfig"; // Le fichier de configuration de Sequelize
 
 // Définir le modèle UserProfile
 class UserProfile extends Model {

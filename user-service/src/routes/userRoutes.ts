@@ -14,11 +14,8 @@ router.post("/register/admin", registerAdmin);
 router.post("/login", loginWithEmail);
 
 router.post("/refresh-token", refreshToken);
-router.post("/create-company-profile", refreshToken);
+router.post("/create-company-profile", );
 
-
-
-// Route pour récupérer le profil utilisateur
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 

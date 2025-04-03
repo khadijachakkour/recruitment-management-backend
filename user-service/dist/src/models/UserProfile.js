@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
-const dbConfig_1 = __importDefault(require("../../config/dbConfig")); // Le fichier de configuration de Sequelize
+const dbConfig_1 = __importDefault(require("../config/dbConfig")); // Le fichier de configuration de Sequelize
 // Définir le modèle UserProfile
 class UserProfile extends sequelize_1.Model {
 }

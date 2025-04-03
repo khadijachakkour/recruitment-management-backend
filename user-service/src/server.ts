@@ -1,14 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express, {Request, Response } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
 import cookieParser from "cookie-parser";
 import axios from "axios";
-import sequelize from "../config/dbConfig";
+import sequelize from "./config/dbConfig";
 
 
-dotenv.config();
 
 const app = express();
 

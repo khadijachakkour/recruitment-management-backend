@@ -35,7 +35,7 @@ async function authenticateClient(): Promise<string> {
     email: string;
     password: string;
     role: string;
-  }): Promise<{ id: string }> { // 👈 Retourner l'ID Keycloak
+  }): Promise<{ id: string }> { 
     try {
       const token = await authenticateClient();
   
