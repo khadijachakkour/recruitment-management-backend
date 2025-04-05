@@ -58,3 +58,20 @@ export const updateCompanyProfile = async (req: Request, res: Response): Promise
     res.status(500).json({ message: errorMessage });
   }
 };
+
+
+export const checkCompanyProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id; // L'ID de l'utilisateur récupéré depuis Keycloak
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return; // 🚀 Ajout d'un return pour éviter l'exécution de la suite
+    }
+
+    const hasProfile = await companyService.hasCompanyProfile(userId);
+    res.json({ hasCompanyProfile: hasProfile }); // ✅ Envoie la réponse sans return explicite
+  } catch (error) {
+    console.error("Erreur lors de la vérification du profil d'entreprise:", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};

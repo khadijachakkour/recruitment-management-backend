@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {loginWithEmail, refreshToken, registerAdmin,registerCandidat } from "../controllers/userController";
-import { getProfile, updateProfile } from "../controllers/profileController";
+import { getProfile, updateProfile, uploadCv } from "../controllers/profileController";
+import upload from "../middlewares/upload";
 
 const router = Router();
 
@@ -14,10 +15,10 @@ router.post("/register/admin", registerAdmin);
 router.post("/login", loginWithEmail);
 
 router.post("/refresh-token", refreshToken);
-router.post("/create-company-profile", );
 
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 
+router.post("/upload-cv", upload.single("cv"), uploadCv); // nouvelle route pour le CV
 
 export default router;

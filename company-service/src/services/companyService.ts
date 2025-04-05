@@ -44,3 +44,13 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
     throw new Error("Erreur lors de la mise à jour du profil d'entreprise.");
   }
 };
+
+export const hasCompanyProfile = async (userId: string): Promise<boolean> => {
+  try {
+    const existingCompany = await Company.getCompanyByUserId(userId);
+    return existingCompany !== null; // Renvoie true si l'admin a une entreprise, sinon false
+  } catch (error) {
+    console.error("Erreur lors de la vérification du profil d'entreprise:", error);
+    return false; // En cas d'erreur, on suppose qu'il n'a pas d'entreprise
+  }
+};

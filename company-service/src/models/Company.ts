@@ -55,6 +55,7 @@ Company.init(
   {
     sequelize,
     tableName: "companies",
+    indexes: [{ unique: true, fields: ["user_id"] }],
   }
 );
 

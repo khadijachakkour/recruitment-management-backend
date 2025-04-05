@@ -41,6 +41,10 @@ interface MulterRequest extends Request {
 }
 
 // 📌 Téléverser un CV
+// profileController.ts
+import cloudinary from "../utils/cloudinary";
+import streamifier from "streamifier";
+
 export const uploadCv = async (req: MulterRequest, res: Response): Promise<void> => {
   try {
     const userId = getUserIdFromToken(req);
@@ -54,14 +58,36 @@ export const uploadCv = async (req: MulterRequest, res: Response): Promise<void>
       return;
     }
 
-    // Générer l'URL du fichier
-    const cvUrl = `/uploads/${req.file.filename}`;
+    // Stream du buffer vers Cloudinary
+    const streamUpload = () =>
+      new Promise<{ secure_url: string }>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "cvs", // dossier dans Cloudinary
+            resource_type: "auto", // pour permettre tous types de fichiers
+          },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        if (!req.file) {
+          res.status(400).json({ message: "Aucun fichier reçu" });
+          return;
+        }
+        
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
 
-    // Sauvegarder l'URL du CV en base de données
+    const result = await streamUpload();
+    const cvUrl = result.secure_url;
+
+    // Sauvegarder l'URL dans la base
     await saveCvUrl(userId, cvUrl);
 
-    res.status(200).json({ message: "CV téléversé avec succès", cv_url: cvUrl });
+    res.status(200).json({ cv_url: cvUrl });
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du téléversement du CV", error });
+    console.error("Erreur Cloudinary :", error);
+    res.status(500).json({ message: "Erreur lors de l'upload du CV", error });
   }
 };
