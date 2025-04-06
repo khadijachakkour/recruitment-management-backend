@@ -11,6 +11,7 @@ class UserProfile extends Model {
   public education_level!: string;
   public skills!: string;
   public cv_url!: string;
+  public avatar_url!: string;
 }
 
 UserProfile.init(
@@ -46,6 +47,10 @@ UserProfile.init(
       allowNull: true,
     },
     cv_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    avatar_url: {
       type: DataTypes.STRING,
       allowNull: true,
     },

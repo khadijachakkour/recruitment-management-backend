@@ -26,3 +26,12 @@ export const saveCvUrl = async (userId: string, cvUrl: string) => {
   await profile.save();
 };
 
+//Enregistrer l'URL du CV
+export const saveAvatarUrl  = async (userId: string, avatarUrl: string) => {
+  const profile = await UserProfile.findOne({ where: { user_id: userId } });
+  if (!profile) throw new Error("Profil non trouvé");
+
+  profile.avatar_url = avatarUrl;
+  await profile.save();
+};
+

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {loginWithEmail, refreshToken, registerAdmin,registerCandidat } from "../controllers/userController";
-import { getProfile, updateProfile, uploadCv } from "../controllers/profileController";
+import { getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 
 const router = Router();
@@ -20,5 +20,7 @@ router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 
 router.post("/upload-cv", upload.single("cv"), uploadCv); // nouvelle route pour le CV
+router.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
+
 
 export default router;
