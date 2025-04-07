@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.saveCvUrl = exports.updateUserProfile = exports.getUserProfile = void 0;
+exports.saveAvatarUrl = exports.saveCvUrl = exports.updateUserProfile = exports.getUserProfile = void 0;
 const UserProfile_1 = __importDefault(require("../models/UserProfile"));
 // Récupérer le profil d'un utilisateur
 const getUserProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,3 +40,12 @@ const saveCvUrl = (userId, cvUrl) => __awaiter(void 0, void 0, void 0, function*
     yield profile.save();
 });
 exports.saveCvUrl = saveCvUrl;
+//Enregistrer l'URL du CV
+const saveAvatarUrl = (userId, avatarUrl) => __awaiter(void 0, void 0, void 0, function* () {
+    const profile = yield UserProfile_1.default.findOne({ where: { user_id: userId } });
+    if (!profile)
+        throw new Error("Profil non trouvé");
+    profile.avatar_url = avatarUrl;
+    yield profile.save();
+});
+exports.saveAvatarUrl = saveAvatarUrl;

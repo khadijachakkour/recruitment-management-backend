@@ -10,8 +10,8 @@ class UserProfile extends Model {
   public experience!: string;
   public education_level!: string;
   public skills!: string;
-  public cv_url!: string;
-  public avatar_url!: string;
+  public cv_url!: string | null;
+  public avatar_url!: string | null;
 }
 
 UserProfile.init(
@@ -51,7 +51,7 @@ UserProfile.init(
       allowNull: true,
     },
     avatar_url: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING ,
       allowNull: true,
     },
     

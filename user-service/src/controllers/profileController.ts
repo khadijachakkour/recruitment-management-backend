@@ -144,3 +144,70 @@ export const uploadAvatar = async (req: MulterRequest, res: Response): Promise<v
     res.status(500).json({ message: "Erreur lors de l’upload de l’avatar", error });
   }
 };
+
+
+const extractCloudinaryPublicId = (url: string): string | null => {
+  const matches = url.match(/\/upload\/(?:v\d+\/)?([^\.]+)\./);
+  return matches ? matches[1] : null;
+};
+
+
+//Suppression image profile
+export const deleteAvatar = async (req: Request, res: Response): Promise<void> => {
+  try {
+    
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+    const profile = await getUserProfile(userId);
+
+    if (!profile.avatar_url) {
+       res.status(400).json({ message: "Aucun avatar à supprimer." });
+       return;
+    }
+
+    const publicId = extractCloudinaryPublicId(profile.avatar_url); // à créer
+
+    if (publicId) {
+      const result = await cloudinary.uploader.destroy(publicId);
+            console.log(result);
+
+    }
+
+    await saveAvatarUrl(userId, null); // mets avatar_url à null en BDD
+    res.status(200).json({ message: "Avatar supprimé avec succès" });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur suppression avatar", error });
+  }
+};
+
+//Suppression cv
+export const deleteCv = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+    const profile = await getUserProfile(userId);
+
+    if (!profile.cv_url) {
+       res.status(400).json({ message: "Aucun CV à supprimer." });
+       return;
+    }
+
+    const publicId = extractCloudinaryPublicId(profile.cv_url); // à créer
+    console.log(publicId);
+    if (publicId) {
+      const result = await cloudinary.uploader.destroy(publicId);
+      console.log(result);
+    }
+
+    await saveCvUrl(userId, null); // mets cv_url à null en BDD
+    res.status(200).json({ message: "CV supprimé avec succès" });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur suppression CV", error });
+  }
+};

@@ -18,7 +18,7 @@ export const updateUserProfile = async (userId: string, profileData: any) => {
 };
 
 // Enregistrer l'URL du CV
-export const saveCvUrl = async (userId: string, cvUrl: string) => {
+export const saveCvUrl = async (userId: string, cvUrl: string | null) => {
   const profile = await UserProfile.findOne({ where: { user_id: userId } });
   if (!profile) throw new Error("Profil non trouvé");
 
@@ -27,7 +27,7 @@ export const saveCvUrl = async (userId: string, cvUrl: string) => {
 };
 
 //Enregistrer l'URL du CV
-export const saveAvatarUrl  = async (userId: string, avatarUrl: string) => {
+export const saveAvatarUrl  = async (userId: string, avatarUrl: string | null) => {
   const profile = await UserProfile.findOne({ where: { user_id: userId } });
   if (!profile) throw new Error("Profil non trouvé");
 

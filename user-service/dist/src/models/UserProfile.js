@@ -43,6 +43,10 @@ UserProfile.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    avatar_url: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
 }, {
     sequelize: dbConfig_1.default, // Instance de Sequelize
     modelName: "UserProfile", // Nom du modèle
