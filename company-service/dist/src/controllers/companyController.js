@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateCompanyProfile = exports.getCompanyProfile = exports.createCompanyProfile = void 0;
+exports.checkCompanyProfile = exports.updateCompanyProfile = exports.getCompanyProfile = exports.createCompanyProfile = void 0;
 const companyService = __importStar(require("../services/companyService"));
 const createCompanyProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -96,3 +96,20 @@ const updateCompanyProfile = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.updateCompanyProfile = updateCompanyProfile;
+const checkCompanyProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // L'ID de l'utilisateur récupéré depuis Keycloak
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized" });
+            return; // 🚀 Ajout d'un return pour éviter l'exécution de la suite
+        }
+        const hasProfile = yield companyService.hasCompanyProfile(userId);
+        res.json({ hasCompanyProfile: hasProfile }); // ✅ Envoie la réponse sans return explicite
+    }
+    catch (error) {
+        console.error("Erreur lors de la vérification du profil d'entreprise:", error);
+        res.status(500).json({ message: "Erreur interne du serveur" });
+    }
+});
+exports.checkCompanyProfile = checkCompanyProfile;

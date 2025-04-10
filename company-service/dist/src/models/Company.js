@@ -46,5 +46,6 @@ Company.init({
 }, {
     sequelize: dbConfig_1.default,
     tableName: "companies",
+    indexes: [{ unique: true, fields: ["user_id"] }],
 });
 exports.default = Company;

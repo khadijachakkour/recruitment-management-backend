@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateCompanyProfile = exports.getCompanyProfile = exports.createCompanyProfile = void 0;
+exports.hasCompanyProfile = exports.updateCompanyProfile = exports.getCompanyProfile = exports.createCompanyProfile = void 0;
 const Company_1 = __importDefault(require("../models/Company"));
 const createCompanyProfile = (userId, companyData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -60,3 +60,14 @@ const updateCompanyProfile = (userId, companyData) => __awaiter(void 0, void 0, 
     }
 });
 exports.updateCompanyProfile = updateCompanyProfile;
+const hasCompanyProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const existingCompany = yield Company_1.default.getCompanyByUserId(userId);
+        return existingCompany !== null; // Renvoie true si l'admin a une entreprise, sinon false
+    }
+    catch (error) {
+        console.error("Erreur lors de la vérification du profil d'entreprise:", error);
+        return false; // En cas d'erreur, on suppose qu'il n'a pas d'entreprise
+    }
+});
+exports.hasCompanyProfile = hasCompanyProfile;
