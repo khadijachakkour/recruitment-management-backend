@@ -7,6 +7,7 @@ import companyRoutes from "./routes/companyRoutes";
 import sequelize from "./config/dbConfig";
 
 
+
 const app = express();
 
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));

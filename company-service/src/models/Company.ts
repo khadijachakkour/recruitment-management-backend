@@ -1,12 +1,12 @@
-// models/Company.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig";
+import Department from "./Department";
 
 class Company extends Model {
   public id!: number;
   public companyName!: string;
   public companyLogo?: string;
-  public industry!: string;
+  public industry!: string; //secteur d'activité
   public otherIndustry?: string;
   public companyDescription!: string;
   public companyAddress!: string;
@@ -15,7 +15,6 @@ class Company extends Model {
   public yearFounded!: string;
   public companySize!: string;
   public numberOfEmployees!: string;
-  public departments!: string;
   public contractTypes!: string;
   public requiredDocuments!: string;
   public contactEmail!: string;
@@ -23,6 +22,8 @@ class Company extends Model {
   public website?: string;
   public socialLinks?: string;
   public user_id!: string;
+  public ceo?: string;
+  public revenue?: number;  // Ici, on définit correctement le champ revenue.
 
   static async getCompanyByUserId(userId: string) {
     return await this.findOne({ where: { user_id: userId } });
@@ -43,7 +44,6 @@ Company.init(
     yearFounded: { type: DataTypes.STRING, allowNull: false },
     companySize: { type: DataTypes.STRING, allowNull: false },
     numberOfEmployees: { type: DataTypes.STRING, allowNull: false },
-    departments: { type: DataTypes.STRING, allowNull: false },
     contractTypes: { type: DataTypes.STRING, allowNull: false },
     requiredDocuments: { type: DataTypes.STRING, allowNull: false },
     contactEmail: { type: DataTypes.STRING, allowNull: false, validate: { isEmail: true } },
@@ -51,6 +51,8 @@ Company.init(
     website: { type: DataTypes.STRING, allowNull: true },
     socialLinks: { type: DataTypes.STRING, allowNull: true },
     user_id: { type: DataTypes.STRING, allowNull: false, unique: true },
+    revenue:{ type: DataTypes.STRING, allowNull: true},
+
   },
   {
     sequelize,
