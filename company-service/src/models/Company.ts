@@ -23,7 +23,8 @@ class Company extends Model {
   public socialLinks?: string;
   public user_id!: string;
   public ceo?: string;
-  public revenue?: number;  // Ici, on définit correctement le champ revenue.
+  public ceoImage?: string;
+  public revenue?: string;  
 
   static async getCompanyByUserId(userId: string) {
     return await this.findOne({ where: { user_id: userId } });
@@ -52,6 +53,8 @@ Company.init(
     socialLinks: { type: DataTypes.STRING, allowNull: true },
     user_id: { type: DataTypes.STRING, allowNull: false, unique: true },
     revenue:{ type: DataTypes.STRING, allowNull: true},
+    ceo: { type: DataTypes.STRING, allowNull: true },
+    ceoImage: { type: DataTypes.STRING, allowNull: true },
 
   },
   {

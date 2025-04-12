@@ -48,7 +48,7 @@ export const getCompanyProfile = async (userId: string) => {
 };
 
 
-export const updateCompanyProfile = async (userId: string, companyData: any) => {
+/*export const updateCompanyProfile = async (userId: string, companyData: any) => {
   try {
     const company = await Company.getCompanyByUserId(userId);
     if (!company) {
@@ -77,7 +77,49 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
         (error instanceof Error ? error.message : "Erreur inconnue.")
     );
   }
+};*/
+
+
+export const updateCompanyProfile = async (userId: string, companyData: any) => {
+  try {
+    const company = await Company.getCompanyByUserId(userId);
+    if (!company) {
+      throw new Error("Aucune entreprise associée à cet utilisateur.");
+    }
+
+    const { departments, ...companyFields } = companyData;
+
+    // Mise à jour du profil entreprise
+    await company.update(companyFields);
+
+    // Mise à jour des départements (si présents)
+    if (Array.isArray(departments)) {
+      // Supprimer les anciens départements
+      await Department.destroy({ where: { company_id: company.id } });
+
+      // Créer les nouveaux départements
+      const newDepartments = departments.map((dept: string) => ({
+        name: dept,
+        company_id: company.id,
+      }));
+      await Department.bulkCreate(newDepartments);
+    }
+
+    // Recharger avec les départements
+    const updatedCompany = await Company.findOne({
+      where: { id: company.id },
+      include: [{ model: Department, as: "departments" }],
+    });
+
+    return updatedCompany;
+  } catch (error) {
+    throw new Error(
+      "Erreur lors de la mise à jour du profil d'entreprise: " +
+        (error instanceof Error ? error.message : "Erreur inconnue.")
+    );
+  }
 };
+
 
 
 export const hasCompanyProfile = async (userId: string): Promise<boolean> => {

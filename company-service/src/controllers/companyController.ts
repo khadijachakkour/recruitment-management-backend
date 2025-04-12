@@ -31,7 +31,7 @@ export const getCompanyProfile = async (req: Request, res: Response): Promise<vo
     const company = await companyService.getCompanyProfile(userId);
 
     if (!company) {
-      res.status(404).json({ message: "Aucune entreprise trouvée." });
+      res.status(204).end();
       return;
     }
 
@@ -42,7 +42,7 @@ export const getCompanyProfile = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export const updateCompanyProfile = async (req: Request, res: Response): Promise<void> => {
+/*export const updateCompanyProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ message: "Utilisateur non authentifié" });
@@ -57,7 +57,27 @@ export const updateCompanyProfile = async (req: Request, res: Response): Promise
     const errorMessage = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
     res.status(500).json({ message: errorMessage });
   }
+};*/
+
+
+export const updateCompanyProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+
+    const userId = req.user.id;
+    const updatedCompany = await companyService.updateCompanyProfile(userId, req.body);
+
+    res.status(200).json({ message: "Profil mis à jour avec succès.", updatedCompany });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
+    res.status(500).json({ message: errorMessage });
+  }
 };
+
 
 
 export const checkCompanyProfile = async (req: Request, res: Response): Promise<void> => {
