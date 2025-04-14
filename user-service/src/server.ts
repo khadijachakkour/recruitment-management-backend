@@ -20,6 +20,7 @@ app.use(express.json());
 
 // Déclarer les routes
 app.use("/api/users", userRoutes);
+app.use("/api/admin", userRoutes);
 
 
 // Route de déconnexion
@@ -61,6 +62,7 @@ const syncDb = async () => {
     console.error("Erreur de synchronisation de la base de données : ", error);
   }
 };
+
 
 syncDb();
 

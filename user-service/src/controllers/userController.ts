@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import axios from "axios";
-import {createUserInKeycloak } from "../services/keycloakService";
+import {authenticateClient, createUser, createUserInKeycloak } from "../services/keycloakService";
 import dotenv from "dotenv";
-import UserProfile from "../models/UserProfile";
+import UserProfile from "../models/CandidatProfile";
 
 
 dotenv.config();
@@ -11,7 +11,7 @@ dotenv.config();
 export const registerCandidat = async (req: Request, res: Response): Promise<void> => {  // Retour de type void, car la réponse est envoyée via res
   try {
     const { firstname, lastname, username, email, password } = req.body;
-    const role = "Candidat"; // Assignation automatique du rôle
+    const role = "Candidat"; 
 
     // Création de l'utilisateur dans Keycloak
     const keycloakUser = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
@@ -150,3 +150,86 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     }
   }
 };
+
+//Gestion des utilisateurs par Admin
+
+// Endpoint pour récupérer les utilisateurs sauf ceux avec les rôles 'candidate' et 'admin'
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = await authenticateClient(); // Authentification
+
+    // Étape 1: Récupérer tous les utilisateurs
+    const usersResponse = await axios.get(
+      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const users = usersResponse.data;
+
+    // Étape 2: Pour chaque utilisateur, récupérer ses rôles et filtrer
+    const filteredUsers: any[] = [];
+
+    for (const user of users) {
+      const rolesResponse = await axios.get(
+        `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${user.id}/role-mappings/realm`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const userRoles = rolesResponse.data.map((role: { name: string }) => role.name.toLowerCase());
+      // Filtrer le rôle par défaut
+      const filteredRoles = userRoles.filter((role: string) => role !== 'default-roles-apprecrutement');
+      // Assignation des rôles filtrés
+      user.role = filteredRoles;
+      // Exclure les utilisateurs avec le rôle 'admin' ou 'candidate'
+      if (!userRoles.includes('admin') && !userRoles.includes('candidat')) {
+        filteredUsers.push(user);
+      }
+    }
+
+    res.status(200).json(filteredUsers);
+  } catch (error) {
+    console.error("Erreur lors de la récupération filtrée des utilisateurs :", error);
+    res.status(500).json({ message: "Erreur lors de la récupération filtrée des utilisateurs" });
+  }
+};
+
+
+// Endpoint pour supprimer un utilisateur
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const token = await authenticateClient();
+
+    await axios.delete(
+      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(200).json({ message: "Utilisateur supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'utilisateur:", error);
+    res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur" });
+  }
+};
+
+
+export const createRecruteurManagerRH = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { firstname, lastname, username, email, password, role } = req.body;
+
+    // Appeler la fonction pour créer un utilisateur dans Keycloak
+    const user = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+
+    // Retourner l'ID de l'utilisateur créé
+    res.status(201).json({ userId: user.id });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la création de l'utilisateur"});
+  }
+}
+

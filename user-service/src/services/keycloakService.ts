@@ -6,7 +6,7 @@ import { Request } from "express";
 
 dotenv.config();
 
-async function authenticateClient(): Promise<string> {
+export async function authenticateClient(): Promise<string> {
   try {
     const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
@@ -98,3 +98,15 @@ export function getUserIdFromToken(req: Request): string | null {
 }
 
 
+// Route pour ajouter un utilisateur
+export const createUser = async (req: Request): Promise<void> => {
+  const { firstname, lastname, username, email, password, role } = req.body;
+
+  try {
+    const user = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+
+    console.log("Utilisateur créé avec succès");
+  } catch (error) {
+    console.error("Erreur lors de la création de l'utilisateur");
+  }
+};

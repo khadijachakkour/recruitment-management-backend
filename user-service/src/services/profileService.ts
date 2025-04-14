@@ -1,4 +1,4 @@
-import UserProfile from "../models/UserProfile";
+import UserProfile from "../models/CandidatProfile";
 import axios from "axios";
 
 // Récupérer le profil d'un utilisateur

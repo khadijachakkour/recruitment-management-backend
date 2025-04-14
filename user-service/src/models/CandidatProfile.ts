@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig"; // Le fichier de configuration de Sequelize
 
 // Définir le modèle UserProfile
-class UserProfile extends Model {
+class CandidatProfile extends Model {
   public id!: number;
   public user_id!: string; // ID de l'utilisateur de Keycloak
   public phone_number!: string;
@@ -14,7 +14,7 @@ class UserProfile extends Model {
   public avatar_url!: string | null;
 }
 
-UserProfile.init(
+CandidatProfile.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -64,4 +64,4 @@ UserProfile.init(
   }
 );
 
-export default UserProfile;
+export default CandidatProfile;
