@@ -1,6 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig";
-import Department from "./Department";
 
 class Company extends Model {
   public id!: number;

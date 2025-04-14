@@ -12,7 +12,6 @@ export const createCompanyProfile = async (userId: string, companyData: any) => 
     // Récupère les départements depuis les données
     const { departments, ...companyFields } = companyData;
 
-    // Crée l'entreprise
     const company = await Company.create({ ...companyFields, user_id: userId });
 
     // Crée les départements si fournis
@@ -46,38 +45,6 @@ export const getCompanyProfile = async (userId: string) => {
     );
   }
 };
-
-
-/*export const updateCompanyProfile = async (userId: string, companyData: any) => {
-  try {
-    const company = await Company.getCompanyByUserId(userId);
-    if (!company) {
-      throw new Error("Aucune entreprise associée à cet utilisateur.");
-    }
-
-    const { departments, ...companyFields } = companyData;
-
-    // Mise à jour du profil entreprise
-    await company.update(companyFields);
-
-    // Mise à jour des départements (optionnel : ici on supprime et recrée)
-    if (Array.isArray(departments)) {
-      await Department.destroy({ where: { company_id: company.id } });
-      const departmentRecords = departments.map((dept: string) => ({
-        name: dept,
-        company_id: company.id,
-      }));
-      await Department.bulkCreate(departmentRecords);
-    }
-
-    return company;
-  } catch (error) {
-    throw new Error(
-      "Erreur lors de la mise à jour du profil d'entreprise: " +
-        (error instanceof Error ? error.message : "Erreur inconnue.")
-    );
-  }
-};*/
 
 
 export const updateCompanyProfile = async (userId: string, companyData: any) => {
