@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import axios from "axios";
-import {authenticateClient, createUser, createUserInKeycloak } from "../services/keycloakService";
+import {authenticateClient } from "../services/keycloakService";
 import dotenv from "dotenv";
 import UserProfile from "../models/CandidatProfile";
+import { createUser } from "../services/AdminService";
+import { createUserInKeycloak } from "../services/keycloakService";
+
 
 
 dotenv.config();
@@ -221,10 +224,10 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
 export const createRecruteurManagerRH = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstname, lastname, username, email, password, role } = req.body;
+    const { firstname, lastname, username, email, role } = req.body;
 
     // Appeler la fonction pour créer un utilisateur dans Keycloak
-    const user = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
+    const user = await createUser({ firstname, lastname, username, email, role });
 
     // Retourner l'ID de l'utilisateur créé
     res.status(201).json({ userId: user.id });

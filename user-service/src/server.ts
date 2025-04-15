@@ -12,6 +12,7 @@ import sequelize from "./config/dbConfig";
 
 const app = express();
 
+
 // Configuration des middlewares
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(bodyParser.json());
@@ -65,6 +66,7 @@ const syncDb = async () => {
 
 
 syncDb();
+
 
 // Lancer le serveur
 app.listen(process.env.PORT, () => {
