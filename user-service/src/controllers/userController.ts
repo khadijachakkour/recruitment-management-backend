@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import UserProfile from "../models/CandidatProfile";
 import { createUser } from "../services/AdminService";
 import { createUserInKeycloak } from "../services/keycloakService";
+import { getUserIdFromResetToken } from "../utils/jwtUtils";
 
 
 
@@ -35,8 +36,6 @@ export const registerCandidat = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ message: "Erreur d'inscription du candidat", error });
   }
 };
-
-
 
 
 // Inscription d'un admin entreprise (assignation automatique du rôle "Admin")
@@ -231,8 +230,44 @@ export const createRecruteurManagerRH = async (req: Request, res: Response): Pro
 
     // Retourner l'ID de l'utilisateur créé
     res.status(201).json({ userId: user.id });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Erreur dans createRecruteurManagerRH:", error?.response?.data || error.message || error);
     res.status(500).json({ message: "Erreur lors de la création de l'utilisateur"});
   }
+  
 }
 
+// Dans ton controller Node.js
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  const { token, password } = req.body;
+
+  try {
+    // 🔒 Vérifier le token dans ta DB ou cache
+    
+    const userId = await getUserIdFromResetToken(token); // à implémenter selon ton stockage
+    if (!userId) {
+       res.status(400).json({ message: "Token invalide ou expiré" });
+       return;
+    }
+    
+    const kcToken = await authenticateClient();
+    await axios.put(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/reset-password`,
+      {
+        type: "password",
+        value: password,
+        temporary: false,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${kcToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Mot de passe mis à jour avec succès" });
+  } catch (err) {
+    console.error("Erreur de réinitialisation", err);
+    res.status(500).json({ message: "Erreur de réinitialisation" });
+  }
+};
