@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import axios from "axios";
-import {authenticateClient } from "../services/keycloakService";
+import {authenticateClient, getUserIdFromToken } from "../services/keycloakService";
 import dotenv from "dotenv";
 import UserProfile from "../models/CandidatProfile";
 import { createUser } from "../services/AdminService";
@@ -155,11 +155,15 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 
 //Gestion des utilisateurs par Admin
 
-// Endpoint pour récupérer les utilisateurs sauf ceux avec les rôles 'candidate' et 'admin'
+//Endpoint pour récupérer les utilisateurs sauf ceux avec les rôles 'candidate' et 'admin'
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const token = await authenticateClient(); // Authentification
-
+    const adminId = getUserIdFromToken(req);
+    if (!adminId) {
+      res.status(401).json({ message: "Token invalide ou manquant" });
+      return;
+    }
     // Étape 1: Récupérer tous les utilisateurs
     const usersResponse = await axios.get(
       `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
@@ -174,6 +178,10 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     const filteredUsers: any[] = [];
 
     for (const user of users) {
+      const userAttrs = user.attributes || {};
+  const IdAdmin = Array.isArray(userAttrs.IdAdmin) ? userAttrs.IdAdmin[0] : userAttrs.IdAdmin;
+
+  if (IdAdmin === adminId) {
       const rolesResponse = await axios.get(
         `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${user.id}/role-mappings/realm`,
         {
@@ -191,7 +199,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         filteredUsers.push(user);
       }
     }
-
+  }
     res.status(200).json(filteredUsers);
   } catch (error) {
     console.error("Erreur lors de la récupération filtrée des utilisateurs :", error);
@@ -224,9 +232,14 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 export const createRecruteurManagerRH = async (req: Request, res: Response): Promise<void> => {
   try {
     const { firstname, lastname, username, email, role } = req.body;
+    const adminId = getUserIdFromToken(req); 
 
-    // Appeler la fonction pour créer un utilisateur dans Keycloak
-    const user = await createUser({ firstname, lastname, username, email, role });
+    if (!adminId) {
+      res.status(401).json({ message: "Token invalide ou manquant" });
+      return;
+    }
+
+    const user = await createUser({ firstname, lastname, username, email, role }, adminId);
 
     // Retourner l'ID de l'utilisateur créé
     res.status(201).json({ userId: user.id });

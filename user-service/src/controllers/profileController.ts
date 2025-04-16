@@ -8,6 +8,7 @@ import streamifier from "streamifier";
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserIdFromToken(req);
+    console.log(userId);
     if (!userId) {
       res.status(401).json({ message: "Utilisateur non authentifié" });
       return;

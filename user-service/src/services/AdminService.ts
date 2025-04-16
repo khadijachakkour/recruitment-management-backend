@@ -6,31 +6,9 @@ import jwt from "jsonwebtoken";
 import { Request } from "express";
 import nodemailer from "nodemailer";
 import { generateResetToken } from "../utils/jwtUtils";
+import { authenticateClient } from "./keycloakService";
 
 dotenv.config();
-
-export async function authenticateClient(): Promise<string> {
-  try {
-    const response = await axios.post(
-      `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-      new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-        client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-
-    return response.data.access_token;
-  } catch (error: any) {
-    console.error("Erreur d'authentification avec Keycloak:", error.response?.data || error.message);
-    throw error;
-  }
-}
 
 async function sendResetEmail(email: string, token: string) {
   const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
@@ -39,68 +17,86 @@ async function sendResetEmail(email: string, token: string) {
     host: "sandbox.smtp.mailtrap.io",
     port: 2525,
     auth: {
-      user:"2b8e494031167d",
+      user: "2b8e494031167d",
       pass: "3b40456de46d0b",
     },
   });
 
-  await transporter.sendMail({
-    from: '"Admin" <no-reply@example.com>',
-    to: email,
-    subject: "Réinitialisation du mot de passe",
-    html: `<p>Bonjour,</p>
-           <p>Veuillez cliquer sur le lien ci-dessous pour définir votre mot de passe :</p>
-           <a href="${resetUrl}">${resetUrl}</a>
-           <p>Ce lien est valable pendant 24 heures.</p>`,
-  });
-}
+  // Envoi de l'email en arrière-plan (asynchrone)
+  setTimeout(async () => {
+    await transporter.sendMail({
+      from: '"Admin" <no-reply@example.com>',
+      to: email,
+      subject: "Account Activation – Set Your Password",
+      html: `
+        <p>Welcome to the platform. Your user account has been successfully created.</p>
+        <p>To activate your account and set your password, please click on the link below:</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>This link will remain valid for 24 hours.</p>
+        <p>If you have any questions or did not expect this email, please contact the system administrator.</p>
+        <p>Best regards,<br/>Admin Team</p>
+      `,
+    });
+  }, 0);
 
+}
+  
+
+// Creation des utilisateurs par l'admin
 export async function createUser(userData: {
   firstname: string;
   lastname: string;
   username: string;
   email: string;
   role: string;
-}): Promise<{ id: string, resetToken: string }> {
+}, IdAdmin: string): Promise<{ id: string, resetToken: string }> {
   try {
+    // Authentification de l'utilisateur une seule fois
     const token = await authenticateClient();
-    const createResponse = await axios.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
-    username: userData.username,
-    email: userData.email,
-    firstName: userData.firstname,
-    lastName: userData.lastname,
-    enabled: true,
-    emailVerified: true,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
 
-  console.log("User créé avec location:", createResponse.headers.location);
+    // Effectuer les deux requêtes de manière parallèle pour gagner du temps
+    const userCreationPromise = axios.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
+      username: userData.username,
+      email: userData.email,
+      firstName: userData.firstname,
+      lastName: userData.lastname,
+      enabled: true,
+      emailVerified: true,
+      attributes: {
+        IdAdmin: [IdAdmin],
+      }
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
+    const rolePromise = axios.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/${userData.role}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const userId = createResponse.headers.location?.split("/").pop();
-  if (!userId) throw new Error("Utilisateur créé mais ID introuvable.");
+    // Attendre que les deux requêtes soient terminées
+    const [createResponse, roleResp] = await Promise.all([userCreationPromise, rolePromise]);
 
-  // Ajout du rôle
-  const roleResp = await axios.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/${userData.role}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  await axios.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
-    [roleResp.data],
-    { headers: { Authorization: `Bearer ${token}` } });
+    const userId = createResponse.headers.location?.split("/").pop();
+    if (!userId) throw new Error("Utilisateur créé mais ID introuvable.");
 
+    // Ajouter le rôle à l'utilisateur
+    await axios.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
+      [roleResp.data],
+      { headers: { Authorization: `Bearer ${token}` } });
+
+    // Générer un token de réinitialisation et envoyer l'email de réinitialisation
     const resetToken = generateResetToken(userId);
     await sendResetEmail(userData.email, resetToken);
-    
-  return { id: userId, resetToken };
 
-} catch (err: any) {
-  console.error("Erreur dans createUser:", err.response?.data || err.message);
-  throw err;
-}
+    return { id: userId, resetToken };
+
+  } catch (err: any) {
+    console.error("Erreur dans createUser:", err.response?.data || err.message);
+    throw err;
+  }
 }
 
   export function getUserIdFromToken(req: Request): string | null {
