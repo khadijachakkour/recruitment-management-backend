@@ -6,18 +6,18 @@ class Company extends Model {
   public companyName!: string;
   public companyLogo?: string;
   public industry!: string; //secteur d'activité
-  public otherIndustry?: string;
+  public otherIndustry!: string;
   public companyDescription!: string;
-  public companyAddress!: string;
-  public country!: string;
-  public region!: string;
-  public yearFounded!: string;
-  public companySize!: string;
-  public numberOfEmployees!: string;
-  public contractTypes!: string;
-  public requiredDocuments!: string;
-  public contactEmail!: string;
-  public phoneNumber!: string;
+  public companyAddress?: string;
+  public country?: string;
+  public region?: string;
+  public yearFounded?: string;
+  public companySize?: string;
+  public numberOfEmployees?: string;
+  public contractTypes?: string;
+  public requiredDocuments?: string;
+  public contactEmail?: string;
+  public phoneNumber?: string;
   public website?: string;
   public socialLinks?: string;
   public user_id!: string;
@@ -38,16 +38,16 @@ Company.init(
     industry: { type: DataTypes.STRING, allowNull: false },
     otherIndustry: { type: DataTypes.STRING, allowNull: true },
     companyDescription: { type: DataTypes.TEXT, allowNull: false },
-    companyAddress: { type: DataTypes.STRING, allowNull: false },
-    country: { type: DataTypes.STRING, allowNull: false },
-    region: { type: DataTypes.STRING, allowNull: false },
-    yearFounded: { type: DataTypes.STRING, allowNull: false },
-    companySize: { type: DataTypes.STRING, allowNull: false },
-    numberOfEmployees: { type: DataTypes.STRING, allowNull: false },
-    contractTypes: { type: DataTypes.STRING, allowNull: false },
-    requiredDocuments: { type: DataTypes.STRING, allowNull: false },
-    contactEmail: { type: DataTypes.STRING, allowNull: false, validate: { isEmail: true } },
-    phoneNumber: { type: DataTypes.STRING, allowNull: false },
+    companyAddress: { type: DataTypes.STRING, allowNull: true },
+    country: { type: DataTypes.STRING, allowNull: true },
+    region: { type: DataTypes.STRING, allowNull: true },
+    yearFounded: { type: DataTypes.STRING, allowNull: true },
+    companySize: { type: DataTypes.STRING, allowNull: true },
+    numberOfEmployees: { type: DataTypes.STRING, allowNull: true },
+    contractTypes: { type: DataTypes.STRING, allowNull: true },
+    requiredDocuments: { type: DataTypes.STRING, allowNull: true },
+    contactEmail: { type: DataTypes.STRING, allowNull: true },
+    phoneNumber: { type: DataTypes.STRING, allowNull: true },
     website: { type: DataTypes.STRING, allowNull: true },
     socialLinks: { type: DataTypes.STRING, allowNull: true },
     user_id: { type: DataTypes.STRING, allowNull: false, unique: true },

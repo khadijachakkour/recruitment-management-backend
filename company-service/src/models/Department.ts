@@ -4,7 +4,7 @@ import Company from "./Company";
 
 class Department extends Model {
   public id!: number;
-  public name!: string;
+  public name?: string;
   public company_id!: number;   //clé étrangère
 }
 
@@ -17,7 +17,7 @@ Department.init(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     company_id: {
       type: DataTypes.INTEGER,
