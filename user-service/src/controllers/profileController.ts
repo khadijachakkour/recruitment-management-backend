@@ -3,6 +3,7 @@ import { getUserProfile, updateUserProfile, saveCvUrl, saveAvatarUrl } from "../
 import { getUserIdFromToken } from "../services/keycloakService";
 import cloudinary from "../utils/cloudinary";
 import streamifier from "streamifier";
+import { PDFDocument } from "pdf-lib";
 
 // Récupérer le profil du candidat
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
@@ -39,11 +40,29 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 };
 
 
-// 🛠 Définir une interface qui étend Request pour inclure `file`
+
+
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
-// 📌 Téléverser un CV
+
+// 📄 Utilitaire : compresser un fichier PDF
+const compressPdf = async (buffer: Buffer): Promise<Buffer> => {
+  const pdfDoc = await PDFDocument.load(buffer);
+  const copiedPages = await pdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+  const newPdf = await PDFDocument.create();
+
+  copiedPages.forEach((page) => {
+    const { width, height } = page.getSize();
+    page.setSize(width * 0.9, height * 0.9); // réduction des dimensions (compression légère)
+    newPdf.addPage(page);
+  });
+
+  return Buffer.from(await newPdf.save());
+
+};
+
+// 📤 Uploader le CV
 export const uploadCv = async (req: MulterRequest, res: Response): Promise<void> => {
   try {
     const userId = getUserIdFromToken(req);
@@ -57,42 +76,34 @@ export const uploadCv = async (req: MulterRequest, res: Response): Promise<void>
       return;
     }
 
-    const profile = await getUserProfile(userId);
-    const oldCvUrl = profile.cv_url; // L'URL du CV actuel, avant de le remplacer
+    const fileBuffer = req.file.buffer;
+    const fileType = req.file.mimetype;
 
-    // Extraire le public_id du CV actuel (si disponible)
-    const oldPublicId = oldCvUrl ? oldCvUrl.split("/").pop()?.split(".")[0] : undefined;
+    let bufferToUpload = fileBuffer;
 
-    // Stream du buffer vers Cloudinary avec un public_id spécifique pour remplacer l'ancien fichier
-    const streamUpload = () =>
-      new Promise<{ secure_url: string }>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "CVsCandidats", // Dossier Cloudinary
-            public_id: oldPublicId || undefined, // Remplacer l'ancien fichier avec le même public_id si disponible, sinon laisser vide
-            resource_type: "auto", // Accepter tous les types de fichiers
-          },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-        if (!req.file) {
-          res.status(400).json({ message: "Aucun fichier reçu" });
+    // ⚠️ Compresser uniquement si c'est un PDF
+    if (fileType === "application/pdf") {
+      bufferToUpload = await compressPdf(fileBuffer);
+    }
+
+    // Uploader sur Cloudinary
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: "raw", folder: "cvs" },
+      async (error, result) => {
+        if (error || !result) {
+          res.status(500).json({ message: "Échec de l'upload sur Cloudinary", error });
           return;
         }
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
 
-  const result = await streamUpload();
-    const cvUrl = result.secure_url;
+        // Sauvegarder l'URL dans la base
+        await saveCvUrl(userId, result.secure_url);
+        res.status(200).json({ message: "CV uploadé avec succès", url: result.secure_url });
+      }
+    );
 
-    // Sauvegarder la nouvelle URL du CV dans la base de données
-    await saveCvUrl(userId, cvUrl);
-
-    res.status(200).json({ cv_url: cvUrl });
+    // Stream buffer vers Cloudinary
+    streamifier.createReadStream(bufferToUpload).pipe(uploadStream);
   } catch (error) {
-    console.error("Erreur Cloudinary :", error);
     res.status(500).json({ message: "Erreur lors de l'upload du CV", error });
   }
 };

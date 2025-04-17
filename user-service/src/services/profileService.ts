@@ -34,4 +34,3 @@ export const saveAvatarUrl  = async (userId: string, avatarUrl: string | null) =
   profile.avatar_url = avatarUrl;
   await profile.save();
 };
-

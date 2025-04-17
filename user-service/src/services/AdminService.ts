@@ -41,7 +41,15 @@ async function sendResetEmail(email: string, token: string) {
 
 }
   
-
+export async function getCompanyByAdminId(IdAdmin: string): Promise<{ id: string, name?: string }> {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/companies/by-admin/${IdAdmin}`);
+    return response.data; // Assure-toi que l'API retourne un objet avec au moins `id`
+  } catch (error: any) {
+    console.error("Erreur dans getCompanyByAdminId:", error.response?.data || error.message);
+    throw new Error("Impossible de récupérer la company liée à l'admin.");
+  }
+}
 // Creation des utilisateurs par l'admin
 export async function createUser(userData: {
   firstname: string;
@@ -49,11 +57,13 @@ export async function createUser(userData: {
   username: string;
   email: string;
   role: string;
-}, IdAdmin: string): Promise<{ id: string, resetToken: string }> {
+}, IdAdmin: string,): Promise<{ id: string, resetToken: string }> {
   try {
     // Authentification de l'utilisateur une seule fois
     const token = await authenticateClient();
-
+   // 🏢 Récupération de l'id de la company via ta fonction perso
+  const adminCompany = await getCompanyByAdminId(IdAdmin);
+  const companyId = adminCompany.id;
     // Effectuer les deux requêtes de manière parallèle pour gagner du temps
     const userCreationPromise = axios.post(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
       username: userData.username,
@@ -64,6 +74,7 @@ export async function createUser(userData: {
       emailVerified: true,
       attributes: {
         IdAdmin: [IdAdmin],
+        IdCompany: [companyId] 
       }
     }, {
       headers: {
