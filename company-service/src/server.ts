@@ -5,6 +5,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import companyRoutes from "./routes/companyRoutes";
 import sequelize from "./config/dbConfig";
+import Company from "./models/Company";
 
 
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 app.use("/api/companies", companyRoutes);
+
 
 const syncDb = async () => {
   try {

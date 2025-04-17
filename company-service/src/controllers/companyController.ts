@@ -1,6 +1,7 @@
 // controllers/companyController.ts
 import { Request, Response } from "express";
 import * as companyService from "../services/companyService";
+import Company from "../models/Company";
 
 export const createCompanyProfile = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -76,5 +77,26 @@ export const checkCompanyProfile = async (req: Request, res: Response): Promise<
   } catch (error) {
     console.error("Erreur lors de la vérification du profil d'entreprise:", error);
     res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+
+export const getCompanyByAdminId = async (req: Request, res: Response): Promise<void> => {
+  const { adminId } = req.params;
+
+  try {
+    const company = await Company.findOne({
+      where: { user_id: adminId }, // ✅ c'est ici le bon format Sequelize
+    });
+
+    if (!company) {
+       res.status(404).json({ message: 'Aucune entreprise trouvée pour cet admin.' });
+       return;
+    }
+
+    res.json({ id: company.id, name: company.companyName }); // adapte si ta colonne s'appelle différemment
+  } catch (err) {
+    console.error("Erreur lors de la recherche de l'entreprise :", err);
+    res.status(500).json({ message: "Erreur serveur." });
   }
 };
