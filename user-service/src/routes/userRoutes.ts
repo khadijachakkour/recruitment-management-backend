@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createRecruteurManagerRH, deleteUser, getUsers, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword } from "../controllers/userController";
+import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 
@@ -33,5 +33,9 @@ router.delete("/users/:userId", deleteUser); // Route pour supprimer un utilisat
 
 //Reset password
 router.post("/reset-password", resetPassword);
+
+router.get('/count-by-role/:userId', getUsersCountByRoleHandler);
+router.get("/userId", getCurrentUserId);
+
 
 export default router;

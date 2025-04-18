@@ -208,25 +208,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-// Endpoint pour supprimer un utilisateur
-export const deleteUser = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { userId } = req.params;
-    const token = await authenticateClient();
-
-    await axios.delete(
-      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    res.status(200).json({ message: "Utilisateur supprimé avec succès" });
-  } catch (error) {
-    console.error("Erreur lors de la suppression de l'utilisateur:", error);
-    res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur" });
-  }
-};
 
 
 export const createRecruteurManagerRH = async (req: Request, res: Response): Promise<void> => {
@@ -283,4 +264,113 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     console.error("Erreur de réinitialisation", err);
     res.status(500).json({ message: "Erreur de réinitialisation" });
   }
+};
+
+
+// Endpoint pour supprimer un utilisateur
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const token = await authenticateClient();
+
+    await axios.delete(
+      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    res.status(200).json({ message: "Utilisateur supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'utilisateur:", error);
+    res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur" });
+  }
+};
+
+
+
+export async function getUsersCountByRole(userId: string): Promise<Record<string, number>> {
+  const token = await authenticateClient();
+  const roles = ['Recruteur', 'Manager', 'RH'];
+  const result: Record<string, number> = {};
+
+  // Récupérer tous les utilisateurs
+  const response = await axios.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      max: 1000,
+    }
+  });
+
+  const users = response.data;
+  console.log(`📦 ${users.length} utilisateurs récupérés depuis Keycloak`);
+
+  for (const role of roles) {
+    console.log(`🔍 Recherche des utilisateurs avec rôle: ${role}`);
+    let count = 0;
+
+    for (const user of users) {
+      const userAttrs = user.attributes || {};
+      const idAdmin = Array.isArray(userAttrs.IdAdmin) ? userAttrs.IdAdmin[0] : userAttrs.IdAdmin;
+
+      if (idAdmin === userId) {
+        try {
+          const rolesResponse = await axios.get(
+            `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${user.id}/role-mappings/realm`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const userRoles = rolesResponse.data.map((r: any) => r.name.toLowerCase());
+          if (userRoles.includes(role.toLowerCase())) {
+            console.log(`✅ Match: ${user.username} (role: ${role}, admin: ${idAdmin})`);
+            count++;
+          }
+        } catch (err) {
+          console.warn(`⚠️ Erreur lors de la récupération des rôles pour ${user.username}:`);
+        }
+      }
+    }
+
+    result[role] = count;
+    console.log(`📊 ${count} utilisateurs trouvés pour le rôle "${role}" (adminId: ${userId})`);
+  }
+
+  console.log(`📤 Résultat des stats retourné :`, result);
+  return result;
+}
+
+
+// Handler Express
+// Handler Express
+export async function getUsersCountByRoleHandler(req: Request, res: Response) {
+  try {
+    const { userId } = req.params;
+    console.log("📥 [API] Requête pour statistiques avec userId:", userId);
+
+    const result = await getUsersCountByRole(userId);
+
+    console.log("✅ [API] Statistiques renvoyées:", result);
+    res.json(result);
+  } catch (error) {
+    console.error("❌ Error fetching user count by role:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
+
+export const getCurrentUserId = async (req: Request, res: Response): Promise<void> => {
+  const userId = getUserIdFromToken(req);
+
+  console.log("🔑 userId extrait du token:", userId);
+
+  if (!userId) {
+    console.warn("🚫 Aucun userId trouvé dans le token.");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  res.json({ userId });
 };
