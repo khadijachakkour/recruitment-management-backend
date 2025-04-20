@@ -61,17 +61,36 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
 
     // Mise à jour des départements (si présents)
     if (Array.isArray(departments)) {
-      // Supprimer les anciens départements
-      await Department.destroy({ where: { company_id: company.id } });
-
-      // Créer les nouveaux départements
-      const newDepartments = departments.map((dept: string) => ({
-        name: dept,
-        company_id: company.id,
-      }));
-      await Department.bulkCreate(newDepartments);
+      // Récupérer les départements existants pour cette entreprise
+      const existingDepartments = await Department.findAll({
+        where: { company_id: company.id },
+      });
+    
+      // Identifier les départements à supprimer
+      const departmentsToRemove = existingDepartments.filter(
+        (existingDept) => !departments.includes(existingDept.name)
+      );
+    
+      // Identifier les départements à ajouter
+      const departmentsToAdd = departments.filter(
+        (newDept) => !existingDepartments.some((existingDept) => existingDept.name === newDept)
+      );
+    
+      // Supprimer les départements qui ne sont plus nécessaires
+      if (departmentsToRemove.length > 0) {
+        const departmentIdsToRemove = departmentsToRemove.map((dept) => dept.id);
+        await Department.destroy({ where: { id: departmentIdsToRemove } });
+      }
+    
+      // Ajouter les nouveaux départements
+      if (departmentsToAdd.length > 0) {
+        const newDepartments = departmentsToAdd.map((dept: string) => ({
+          name: dept,
+          company_id: company.id,
+        }));
+        await Department.bulkCreate(newDepartments);
+      }
     }
-
     // Recharger avec les départements
     const updatedCompany = await Company.findOne({
       where: { id: company.id },

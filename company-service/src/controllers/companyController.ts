@@ -1,4 +1,3 @@
-// controllers/companyController.ts
 import { Request, Response } from "express";
 import * as companyService from "../services/companyService";
 import Company from "../models/Company";
@@ -138,7 +137,6 @@ export const getCompanyByAdminId = async (req: Request, res: Response): Promise<
 
 export const assignDepartmentsToUser = async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params; // ID de l'utilisateur provenant de Keycloak
-  console.log(userId);
   const { departments } = req.body; // Liste des noms de départements
 
   if (!Array.isArray(departments)) {
@@ -223,5 +221,56 @@ export const assignDepartmentsToUser = async (req: Request, res: Response): Prom
   } catch (error) {
     console.error("Erreur lors de l'affectation des départements :", error);
     res.status(500).json({ message: "Erreur interne du serveur." });
+  }
+};
+
+
+export const deleteUserDepartments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    // Supprimer les départements associés à l'utilisateur
+    await UserDepartments.deleteByUserId(userId);
+
+    res.status(200).json({ message: "Départements de l'utilisateur supprimés avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression des départements de l'utilisateur :", error);
+    res.status(500).json({ message: "Erreur lors de la suppression des départements de l'utilisateur" });
+  }
+}
+
+
+export const getUserDepartments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    // Vérifier si l'ID utilisateur est fourni
+    if (!userId) {
+      res.status(400).json({ message: "L'ID de l'utilisateur est requis." });
+      return;
+    }
+
+    // Récupérer les départements associés à l'utilisateur
+    const userDepartments = await UserDepartments.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Department,
+          as: "Department", // Utiliser l'alias défini dans l'association
+          attributes: ["id", "name"], // Inclure uniquement les champs nécessaires
+        },
+      ],
+    });
+
+    // Formater la réponse
+    const departments = userDepartments.map((ud) => ({
+      id: ud.department_id,
+      name: ud.Department?.name, // Accéder au nom du département via l'association
+    }));
+
+    res.status(200).json(departments);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des départements de l'utilisateur :", error);
+    res.status(500).json({ message: "Erreur lors de la récupération des départements de l'utilisateur." });
   }
 };

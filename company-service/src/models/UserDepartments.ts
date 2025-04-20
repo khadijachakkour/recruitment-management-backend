@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { Association, DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig";
 import Department from "./Department";
 
@@ -6,7 +6,21 @@ class UserDepartments extends Model {
     public id!: number;
     public user_id!: string; // ID de l'utilisateur provenant de Keycloak
     public department_id!: number; // ID du département
+
+    public Department?: Department; 
+    // Méthode pour supprimer les départements d'un utilisateur
+    static async deleteByUserId(userId: string): Promise<void> {
+      await UserDepartments.destroy({
+          where: { user_id: userId },
+      });
+  }
+
+  // Association avec le modèle Department
+  public static associations: {
+    department: Association<UserDepartments, Department>;
+};
 }
+
 
 UserDepartments.init(
   {
@@ -34,5 +48,5 @@ UserDepartments.init(
     tableName: "user_departments",
   }
 );
-UserDepartments.belongsTo(Department, { foreignKey: "department_id" });
+UserDepartments.belongsTo(Department, { foreignKey: "department_id", as: "Department" });
 export default UserDepartments;
