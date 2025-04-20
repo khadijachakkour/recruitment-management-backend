@@ -303,10 +303,8 @@ export async function getUsersCountByRole(userId: string): Promise<Record<string
   });
 
   const users = response.data;
-  console.log(`📦 ${users.length} utilisateurs récupérés depuis Keycloak`);
 
   for (const role of roles) {
-    console.log(`🔍 Recherche des utilisateurs avec rôle: ${role}`);
     let count = 0;
 
     for (const user of users) {
@@ -324,7 +322,6 @@ export async function getUsersCountByRole(userId: string): Promise<Record<string
 
           const userRoles = rolesResponse.data.map((r: any) => r.name.toLowerCase());
           if (userRoles.includes(role.toLowerCase())) {
-            console.log(`✅ Match: ${user.username} (role: ${role}, admin: ${idAdmin})`);
             count++;
           }
         } catch (err) {
@@ -334,27 +331,21 @@ export async function getUsersCountByRole(userId: string): Promise<Record<string
     }
 
     result[role] = count;
-    console.log(`📊 ${count} utilisateurs trouvés pour le rôle "${role}" (adminId: ${userId})`);
   }
 
-  console.log(`📤 Résultat des stats retourné :`, result);
   return result;
 }
 
 
 // Handler Express
-// Handler Express
 export async function getUsersCountByRoleHandler(req: Request, res: Response) {
   try {
     const { userId } = req.params;
-    console.log("📥 [API] Requête pour statistiques avec userId:", userId);
 
     const result = await getUsersCountByRole(userId);
 
-    console.log("✅ [API] Statistiques renvoyées:", result);
     res.json(result);
   } catch (error) {
-    console.error("❌ Error fetching user count by role:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
@@ -364,10 +355,8 @@ export async function getUsersCountByRoleHandler(req: Request, res: Response) {
 export const getCurrentUserId = async (req: Request, res: Response): Promise<void> => {
   const userId = getUserIdFromToken(req);
 
-  console.log("🔑 userId extrait du token:", userId);
 
   if (!userId) {
-    console.warn("🚫 Aucun userId trouvé dans le token.");
     res.status(401).json({ error: "Unauthorized" });
     return;
   }

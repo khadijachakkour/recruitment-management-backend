@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig";
+import { DepartmentAttributes } from "./Department";
 
 class Company extends Model {
   public id!: number;
@@ -24,6 +25,7 @@ class Company extends Model {
   public ceo?: string;
   public ceoImage?: string;
   public revenue?: string;  
+  public departments?: DepartmentAttributes[]; 
 
   static async getCompanyByUserId(userId: string) {
     return await this.findOne({ where: { user_id: userId } });

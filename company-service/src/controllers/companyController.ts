@@ -2,6 +2,11 @@
 import { Request, Response } from "express";
 import * as companyService from "../services/companyService";
 import Company from "../models/Company";
+import Department from "../models/Department";
+import { authenticateClient } from "../services/keycloakService";
+import axios from "axios";
+import { Op } from "sequelize";
+import UserDepartments from "../models/UserDepartments";
 
 export const createCompanyProfile = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -80,23 +85,143 @@ export const checkCompanyProfile = async (req: Request, res: Response): Promise<
   }
 };
 
-
 export const getCompanyByAdminId = async (req: Request, res: Response): Promise<void> => {
   const { adminId } = req.params;
 
   try {
     const company = await Company.findOne({
-      where: { user_id: adminId }, // ✅ c'est ici le bon format Sequelize
+      where: { user_id: adminId },
+      include: [{ model: Department, as: "departments" }],
     });
 
     if (!company) {
-       res.status(404).json({ message: 'Aucune entreprise trouvée pour cet admin.' });
-       return;
+      res.status(404).json({ message: "Aucune entreprise trouvée pour cet admin." });
+      return;
     }
 
-    res.json({ id: company.id, name: company.companyName }); // adapte si ta colonne s'appelle différemment
+    res.json({
+      id: company.id,
+      name: company.companyName,
+      logo: company.companyLogo,
+      industry: company.industry,
+      otherIndustry: company.otherIndustry,
+      description: company.companyDescription,
+      companyAddress: company.companyAddress,
+      country: company.country,
+      region: company.region,
+      yearFounded: company.yearFounded,
+      companySize: company.companySize,
+      numberOfEmployees: company.numberOfEmployees,
+      contractTypes: company.contractTypes,
+      requiredDocuments: company.requiredDocuments,
+      contactEmail: company.contactEmail,
+      phoneNumber: company.phoneNumber,
+      website: company.website,
+      socialLinks: company.socialLinks,
+      ceo: company.ceo,
+      ceoImage: company.ceoImage,
+      revenue: company.revenue,
+
+      // 🔽 Liste des départements associés à l'entreprise
+      departments: company.departments?.map((dept) => ({
+        id: dept.id,
+        name: dept.name,
+      })) || [],
+    });
   } catch (err) {
     console.error("Erreur lors de la recherche de l'entreprise :", err);
     res.status(500).json({ message: "Erreur serveur." });
+  }
+};
+
+
+
+export const assignDepartmentsToUser = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params; // ID de l'utilisateur provenant de Keycloak
+  console.log(userId);
+  const { departments } = req.body; // Liste des noms de départements
+
+  if (!Array.isArray(departments)) {
+    res.status(400).json({ message: "Aucun département fourni." });
+    return;
+  }
+
+  try {
+    // Vérifier si l'utilisateur existe dans Keycloak
+    const token = await authenticateClient();
+    const userResponse = await axios.get(
+      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!userResponse.data) {
+      res.status(404).json({ message: "Utilisateur introuvable." });
+      return;
+    }
+
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
+    }
+
+    // Récupérer l'entreprise de l'admin connecté
+    const userCompany = await Company.findOne({ where: { user_id: req.user.id } });
+    if (!userCompany) {
+      res.status(404).json({ message: "Entreprise introuvable pour cet utilisateur." });
+      return;
+    }
+
+    // Vérifier si les départements existent dans la base de données
+    const existingDepartments = await Department.findAll({
+      where: {
+        name: { [Op.in]: departments },
+        company_id: userCompany.id,
+      },
+    });
+
+    if (existingDepartments.length !== departments.length) {
+      const missingDepartments = departments.filter(
+        (dept) => !existingDepartments.some((existing) => existing.name === dept)
+      );
+      res.status(400).json({
+        message: "Un ou plusieurs départements sont invalides.",
+        missingDepartments,
+      });
+      return;
+    }
+
+    // Récupérer les départements actuellement associés à l'utilisateur
+    const currentAssociations = await UserDepartments.findAll({
+      where: { user_id: userId }, // Filtrer uniquement par l'utilisateur spécifique
+    });
+    console.log(currentAssociations);
+
+    // Identifier les départements à supprimer
+    const departmentsToRemove = currentAssociations.filter(
+      (assoc) => !existingDepartments.some((dept) => dept.id === assoc.department_id)
+    );
+
+    // Supprimer les associations non sélectionnées
+    await Promise.all(
+      departmentsToRemove.map((assoc) =>
+        UserDepartments.destroy({ where: { id: assoc.id } })
+      )
+    );
+
+    // Identifier les nouveaux départements à ajouter
+    const departmentsToAdd = existingDepartments.filter(
+      (dept) => !currentAssociations.some((assoc) => assoc.department_id === dept.id)
+    );
+
+    // Ajouter les nouvelles associations
+    await Promise.all(
+      departmentsToAdd.map((dept) =>
+        UserDepartments.create({ user_id: userId, department_id: dept.id })
+      )
+    );
+
+    res.status(200).json({ message: "Départements mis à jour avec succès." });
+  } catch (error) {
+    console.error("Erreur lors de l'affectation des départements :", error);
+    res.status(500).json({ message: "Erreur interne du serveur." });
   }
 };

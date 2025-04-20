@@ -6,6 +6,8 @@ import bodyParser from "body-parser";
 import companyRoutes from "./routes/companyRoutes";
 import sequelize from "./config/dbConfig";
 import Company from "./models/Company";
+import Department from "./models/Department";
+import UserDepartments from "./models/UserDepartments";
 
 
 

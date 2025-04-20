@@ -5,7 +5,7 @@ import Company from "./Company";
 class Department extends Model {
   public id!: number;
   public name?: string;
-  public company_id!: number;   //clé étrangère
+  public company_id!: number;   
 }
 
 Department.init(
@@ -26,7 +26,9 @@ Department.init(
         model: "companies",
         key: "id",
       },
+      
       onDelete: "CASCADE",
+      
     },
   },
   {
@@ -41,4 +43,14 @@ Company.hasMany(Department, { foreignKey: "company_id", as: "departments" });
 //Chaque département appartient à une entreprise
 Department.belongsTo(Company, { foreignKey: "company_id", as: "company" });  
 
+
+
+export interface DepartmentAttributes {
+  id: number;
+  name?: string;
+  company_id: number;
+}
+
 export default Department;
+
+
