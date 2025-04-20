@@ -196,6 +196,11 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       user.role = filteredRoles;
       // Exclure les utilisateurs avec le rôle 'admin' ou 'candidate'
       if (!userRoles.includes('admin') && !userRoles.includes('candidat')) {
+        const departmentsResponse = await axios.get(
+          `http://localhost:5000/api/companies/user-departments/${user.id}`
+        );
+
+        user.departments = departmentsResponse.data;
         filteredUsers.push(user);
       }
     }
@@ -279,7 +284,10 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-
+// Appeler le microservice company pour supprimer les départements associés
+await axios.delete(
+  `http://localhost:5000/api/companies/user-departments/${userId}`
+);
     res.status(200).json({ message: "Utilisateur supprimé avec succès" });
   } catch (error) {
     console.error("Erreur lors de la suppression de l'utilisateur:", error);
