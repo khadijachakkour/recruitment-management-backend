@@ -363,3 +363,6 @@ export const getCurrentUserId = async (req: Request, res: Response): Promise<voi
 
   res.json({ userId });
 };
+
+
+

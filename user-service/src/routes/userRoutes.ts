@@ -2,6 +2,8 @@ import { Router } from "express";
 import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
+import { authenticateUser } from "../middlewares/authMiddleware";
+
 
 const router = Router();
 
@@ -26,15 +28,15 @@ router.delete("/delete-cv", deleteCv);
 
 
 //Gestion des utilisateurs par Admin
-router.get("/users", getUsers); // Route pour récupérer les utilisateurs
-router.post("/users", createRecruteurManagerRH); // Route pour créer un utilisateur
+router.get("/users", getUsers); 
+router.post("/users", createRecruteurManagerRH); 
 router.delete("/users/:userId", deleteUser); // Route pour supprimer un utilisateur
 
 
 //Reset password
 router.post("/reset-password", resetPassword);
 
-router.get('/count-by-role/:userId', getUsersCountByRoleHandler);
+router.get('/count-by-role/:userId',authenticateUser, getUsersCountByRoleHandler);
 router.get("/userId", getCurrentUserId);
 
 
