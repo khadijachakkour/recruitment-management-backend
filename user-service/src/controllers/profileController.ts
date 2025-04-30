@@ -70,12 +70,20 @@ const oldPublicId = oldCvUrl ? oldCvUrl.split("/").pop()?.split(".")[0] : undefi
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "CVsCandidats", // Dossier Cloudinary
-        public_id: oldPublicId || undefined, // Remplacer l'ancien fichier avec le même public_id si disponible, sinon laisser vide
-        resource_type: "auto", // Accepter tous les types de fichiers
+        public_id: oldPublicId ? `${oldPublicId}` : undefined,  // Remplacer l'ancien fichier avec le même public_id si disponible, sinon laisser vide
+        resource_type: "raw", // Accepter tous les types de fichiers
+        format: "pdf",
       },
       (error, result) => {
-        if (result) resolve(result);
-        else reject(error);
+        if (result) {
+          const finalUrl = result.secure_url.endsWith(".pdf")
+            ? result.secure_url
+            : `${result.secure_url}.pdf`; // patch si besoin
+          resolve({ secure_url: finalUrl });
+        } else {
+          console.error("Cloudinary upload error:", error);
+          reject(error);
+        }
       }
     );
     if (!req.file) {
@@ -102,10 +110,6 @@ export const uploadAvatar = async (req: MulterRequest, res: Response): Promise<v
     const userId = getUserIdFromToken(req);
     if (!userId) {
       res.status(400).json({ message: "Données manquantes" });
-      return;
-    }
-    if (!req.file) {
-      res.status(400).json({ message: "Aucun fichier reçu" });
       return;
     }
     const profile = await getUserProfile(userId);
@@ -172,7 +176,6 @@ export const deleteAvatar = async (req: Request, res: Response): Promise<void> =
 
     if (publicId) {
       const result = await cloudinary.uploader.destroy(publicId);
-            console.log(result);
 
     }
 
