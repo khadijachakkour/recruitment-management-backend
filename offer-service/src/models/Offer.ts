@@ -7,15 +7,19 @@ class Offer extends Model {
   public description!: string;
   public location!: string;
   public salary?: number;
-  public skillsRequired!: string;
-  public contractType!: string;
+  public contractType?: string;
   public departmentId!: number; // Foreign key for Department
   public applicationDeadline!: Date;
   public createdAt?: Date;
   public userId!: string; // Foreign key for Recruiter
   public companyId!: number; // Foreign key for Company
-}
+  public skillsRequired!: string;
+  public experienceRequired?: string; 
+  public educationLevel?: string; 
+  public languagesRequired?: string; 
+  public workMode?: string; // Présentiel, Hybride, Télétravail
 
+}
 Offer.init(
   {
     id: {
@@ -57,7 +61,7 @@ Offer.init(
     },
     contractType: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     applicationDeadline: {
       type: DataTypes.DATE,
@@ -67,11 +71,28 @@ Offer.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    experienceRequired: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    educationLevel: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    languagesRequired: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    workMode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
     tableName: "offers",
   }
 );
+
 
 export default Offer;

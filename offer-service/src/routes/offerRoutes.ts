@@ -14,7 +14,9 @@ router.post("/CreateOffer", createOfferController);
 router.get("/recruiter/:userId", getOffersByRecruiterController);
 router.get("/offerById/:id", getOfferByIdController);
 router.put("/:id", updateOfferController);
-router.delete("/offers/:id", deleteOfferController);
+router.delete("/delete/:id", deleteOfferController);
 router.get("/all", getAllOffersController);
+router.get("/by-recruiter/:userId", getOffersByRecruiterController);
+
 
 export default router;
