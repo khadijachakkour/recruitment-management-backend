@@ -3,13 +3,11 @@ import { getUserProfile, updateUserProfile, saveCvUrl, saveAvatarUrl } from "../
 import { getUserIdFromToken } from "../services/keycloakService";
 import cloudinary from "../utils/cloudinary";
 import streamifier from "streamifier";
-import { PDFDocument } from "pdf-lib";
 
 // Récupérer le profil du candidat
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserIdFromToken(req);
-    console.log(userId);
     if (!userId) {
       res.status(401).json({ message: "Utilisateur non authentifié" });
       return;
@@ -201,11 +199,9 @@ export const deleteCv = async (req: Request, res: Response): Promise<void> => {
        return;
     }
 
-    const publicId = extractCloudinaryPublicId(profile.cv_url); // à créer
-    console.log(publicId);
+    const publicId = extractCloudinaryPublicId(profile.cv_url); 
     if (publicId) {
       const result = await cloudinary.uploader.destroy(publicId);
-      console.log(result);
     }
 
     await saveCvUrl(userId, null); // mets cv_url à null en BDD

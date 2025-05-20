@@ -102,8 +102,6 @@ export async function authenticateClient(): Promise<string> {
       return null;
     }
   }
-  
-
 
 // Route pour ajouter un utilisateur
 export const createUser = async (req: Request): Promise<void> => {

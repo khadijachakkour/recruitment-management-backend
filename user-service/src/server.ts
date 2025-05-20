@@ -9,9 +9,7 @@ import axios from "axios";
 import sequelize from "./config/dbConfig";
 
 
-
 const app = express();
-
 
 // Configuration des middlewares
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));

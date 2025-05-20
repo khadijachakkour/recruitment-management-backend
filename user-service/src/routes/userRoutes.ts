@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword } from "../controllers/userController";
+import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getProfileAdmin, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 import { authenticateUser } from "../middlewares/authMiddleware";
@@ -19,7 +19,7 @@ router.post("/login", loginWithEmail);
 router.post("/refresh-token", refreshToken);
 
 router.get("/profile", getProfile);
-router.put("/profile", updateProfile);
+router.put("/updateprofile", updateProfile);
 
 router.post("/upload-cv", upload.single("cv"), uploadCv); // nouvelle route pour le CV
 router.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
@@ -38,6 +38,12 @@ router.post("/reset-password", resetPassword);
 
 router.get('/count-by-role/:userId',authenticateUser, getUsersCountByRoleHandler);
 router.get("/userId", getCurrentUserId);
+
+router.get("/profileAdmin", getProfileAdmin);
+
+// Nouvelle route pour la répartition des utilisateurs par rôle
+router.get("/statistics/recruitment-distribution", getRecruitmentDistribution);
+
 
 
 export default router;
