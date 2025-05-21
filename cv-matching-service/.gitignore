@@ -1,0 +1,83 @@
+# Environnements virtuels Python
+venv/
+.env
+*.venv
+env/
+
+# Fichiers de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+pip-wheel-metadata/
+
+# Fichiers de build et distribution
+build/
+dist/
+
+# Fichiers temporaires du microservice
+temp_cvs/
+*.log
+*.pid
+
+# Fichiers volumineux
+cv_offer_matching_model_binary_final/
+
+# Dépendances locales ou téléchargées
+*.whl
+*.tar.gz
+*.egg
+
+# Fichiers de configuration locale ou sensible
+*.env
+*.local
+*.secret
+*.key
+*.pem
+
+# Fichiers de cache des dépendances
+pip_cache/
+.pip_cache/
+.wheel_cache/
+
+# Fichiers générés par les IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Fichiers spécifiques à macOS
+.DS_Store
+
+# Fichiers spécifiques à Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Fichiers de cache spaCy et transformers
+*.cache/
+transformers_cache/
+huggingface/
+
+# Fichiers de données temporaires ou tests
+*.csv
+*.pdf
+*.txt
+*.jsonl
+data/
+uploads/
+
+# Fichiers de déploiement ou conteneurs
+*.dockerignore
+Dockerfile.local
+*.bak
+*.swp
+*~
+
+# Garder les fichiers essentiels
+!requirements.txt
+!README.md
+!app/
+!templates/
+!static/
