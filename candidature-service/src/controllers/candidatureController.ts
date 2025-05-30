@@ -96,3 +96,33 @@ export const postulerOffre = async (req: MulterRequest, res: Response): Promise<
     res.status(500).json({ message: "Erreur serveur", error });
   }
 };
+
+export const getCandidaturesByOfferId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const offerId = parseInt(req.params.offerId, 10);
+    if (isNaN(offerId)) {
+      res.status(400).json({ message: "offerId invalide" });
+      return;
+    }
+    const candidatures = await Candidature.findAll({ where: { offer_id: offerId } });
+    res.status(200).json(candidatures);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des candidatures par offre:", error);
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+};
+
+export const countCandidaturesByOfferId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const offerId = parseInt(req.params.offerId, 10);
+    if (isNaN(offerId)) {
+      res.status(400).json({ message: "offerId invalide" });
+      return;
+    }
+    const count = await Candidature.count({ where: { offer_id: offerId } });
+    res.status(200).json({ offerId, candidatureCount: count });
+  } catch (error) {
+    console.error("Erreur lors du comptage des candidatures:", error);
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+};
