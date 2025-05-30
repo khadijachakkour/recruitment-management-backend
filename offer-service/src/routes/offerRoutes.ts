@@ -6,6 +6,7 @@ import {
   updateOfferController,
   deleteOfferController,
   getAllOffersController,
+  countOffersByRecruiterController, // Ajout du contrôleur
 } from "../controllers/offerController";
 
 const router = express.Router();
@@ -17,6 +18,6 @@ router.put("/:id", updateOfferController);
 router.delete("/delete/:id", deleteOfferController);
 router.get("/all", getAllOffersController);
 router.get("/by-recruiter/:userId", getOffersByRecruiterController);
-
+router.get("/count-by-recruiter/:userId", countOffersByRecruiterController); // Nouvelle route
 
 export default router;

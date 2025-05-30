@@ -8,16 +8,16 @@ class Offer extends Model {
   public location!: string;
   public salary?: number;
   public contractType?: string;
-  public departmentId!: number; // Foreign key for Department
+  public departmentId!: number; 
   public applicationDeadline!: Date;
   public createdAt?: Date;
-  public userId!: string; // Foreign key for Recruiter
-  public companyId!: number; // Foreign key for Company
+  public userId!: string; 
+  public companyId!: number; 
   public skillsRequired!: string;
   public experienceRequired?: string; 
   public educationLevel?: string; 
   public languagesRequired?: string; 
-  public workMode?: string; // Présentiel, Hybride, Télétravail
+  public workMode?: string; 
 
 }
 Offer.init(

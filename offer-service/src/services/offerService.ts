@@ -110,3 +110,7 @@ export const deleteOffer = async (id: number) => {
 export const getAllOffers = async () => {
   return await Offer.findAll();
 };
+
+export const countOffersByRecruiter = async (userId: string) => {
+  return await Offer.count({ where: { userId } });
+};

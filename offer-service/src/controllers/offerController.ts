@@ -6,6 +6,7 @@ import {
   updateOffer,
   deleteOffer,
   getAllOffers,
+  countOffersByRecruiter, // Ajout de la fonction
 } from "../services/offerService";
 
 export const createOfferController = async (req: Request, res: Response) => {
@@ -75,6 +76,17 @@ export const getAllOffersController = async (_req: Request, res: Response) => {
     res.status(200).json(offers);
   } catch (error: any) {
     console.error("Erreur lors de la récupération des offres:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const countOffersByRecruiterController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    const count = await countOffersByRecruiter(userId);
+    res.status(200).json({ userId, offerCount: count });
+  } catch (error: any) {
+    console.error("Erreur lors du comptage des offres:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
