@@ -1,6 +1,6 @@
 // routes/companyRoutes.ts
 import { Router } from "express";
-import { assignDepartmentsToUser, checkCompanyProfile, createCompanyProfile, deleteUserDepartments, getCompanyByAdminId, getCompanyProfile, getUserDepartments, updateCompanyProfile } from "../controllers/companyController";
+import { assignDepartmentsToUser, checkCompanyProfile, createCompanyProfile, deleteUserDepartments, getCompanyByAdminId, getCompanyById, getCompanyProfile, getUserDepartments, updateCompanyProfile } from "../controllers/companyController";
 import { authenticateUser } from "../middleware/authMiddleware";
 
 const router = Router();
@@ -14,5 +14,6 @@ router.get("/by-admin/:adminId", getCompanyByAdminId);
 router.put("/users/:userId/departments", authenticateUser, assignDepartmentsToUser);
 router.delete("/user-departments/:userId", deleteUserDepartments);
 router.get("/user-departments/:userId", getUserDepartments);
+router.get("/company/:id",getCompanyById);
 
 export default router;

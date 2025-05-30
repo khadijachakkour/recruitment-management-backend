@@ -274,3 +274,50 @@ export const getUserDepartments = async (req: Request, res: Response): Promise<v
     res.status(500).json({ message: "Erreur lors de la récupération des départements de l'utilisateur." });
   }
 };
+
+
+export const getCompanyById = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const company = await Company.findByPk(id, {
+      include: [{ model: Department, as: "departments" }],
+    });
+
+    if (!company) {
+      res.status(404).json({ message: "Entreprise non trouvée." });
+      return;
+    }
+
+    res.status(200).json({
+      id: company.id,
+      name: company.companyName,
+      logo: company.companyLogo,
+      industry: company.industry,
+      otherIndustry: company.otherIndustry,
+      description: company.companyDescription,
+      companyAddress: company.companyAddress,
+      country: company.country,
+      region: company.region,
+      yearFounded: company.yearFounded,
+      companySize: company.companySize,
+      numberOfEmployees: company.numberOfEmployees,
+      contractTypes: company.contractTypes,
+      requiredDocuments: company.requiredDocuments,
+      contactEmail: company.contactEmail,
+      phoneNumber: company.phoneNumber,
+      website: company.website,
+      socialLinks: company.socialLinks,
+      ceo: company.ceo,
+      ceoImage: company.ceoImage,
+      revenue: company.revenue,
+      departments: company.departments?.map((dept) => ({
+        id: dept.id,
+        name: dept.name,
+      })) || [],
+    });
+  } catch (err) {
+    console.error("Erreur lors de la récupération de l'entreprise par ID :", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+};
