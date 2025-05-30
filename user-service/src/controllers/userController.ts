@@ -435,7 +435,6 @@ export const getRecruitmentDistribution = async (req: Request, res: Response): P
         if (userRoles.includes('manager')) managers++;
         if (userRoles.includes('rh')) hr++;
       } catch (err) {
-        // ignorer les erreurs individuelles
       }
     }
     res.json([
@@ -445,5 +444,22 @@ export const getRecruitmentDistribution = async (req: Request, res: Response): P
     ]);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const token = await authenticateClient();
+    const userResponse = await axios.get(
+      `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    res.status(200).json(userResponse.data);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur par ID:", error);
+    res.status(500).json({ message: "Erreur lors de la récupération de l'utilisateur", error });
   }
 };
