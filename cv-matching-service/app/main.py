@@ -5,10 +5,12 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware  # Ajout de l'import
+from fastapi.middleware.cors import CORSMiddleware  
 from typing import List
 from pydantic import BaseModel
 from models.cv_matcher import CVMatcher
+import requests
+from urllib.parse import urlparse
 
 # Configuration de la journalisation
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -47,7 +49,7 @@ async def rank_cvs(
 ):
     """
     Classe les CV en fonction de leur pertinence pour une description de poste.
-    Accepte des CV sous forme de fichiers PDF ou de texte brut.
+    Accepte des CV sous forme de fichiers PDF, de texte brut, ou d'URLs PDF.
     """
     logger.info("Début du traitement de la requête de classement des CV")
 
@@ -64,10 +66,31 @@ async def rank_cvs(
         logger.error("CV PDF et texte fournis simultanément")
         raise HTTPException(status_code=400, detail="Fournissez soit des fichiers PDF, soit du texte, pas les deux")
 
-    # Gestion des fichiers PDF
     temp_dir = "temp_cvs"
     pdf_paths = None
+    url_to_local = {}
     try:
+        # Si resumes contient des URLs PDF, les télécharger
+        if resumes and all(isinstance(r, str) and r.lower().startswith("http") and r.lower().endswith(".pdf") for r in resumes):
+            os.makedirs(temp_dir, exist_ok=True)
+            pdf_paths = []
+            for idx, url in enumerate(resumes):
+                filename = os.path.basename(urlparse(url).path)
+                local_path = os.path.join(temp_dir, f"{idx}_{filename}")
+                try:
+                    with requests.get(url, stream=True, timeout=10) as r:
+                        r.raise_for_status()
+                        with open(local_path, "wb") as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                    pdf_paths.append(local_path)
+                    url_to_local[local_path] = url
+                except Exception as e:
+                    logger.error(f"Erreur lors du téléchargement du PDF {url} : {e}")
+                    raise HTTPException(status_code=400, detail=f"Impossible de télécharger le PDF: {url}")
+            logger.info(f"PDFs téléchargés depuis URLs: {pdf_paths}")
+            files = None  
+        # Gestion des fichiers PDF
         if files:
             os.makedirs(temp_dir, exist_ok=True)
             pdf_paths = []
@@ -80,14 +103,16 @@ async def rank_cvs(
                     shutil.copyfileobj(file.file, f)
                 pdf_paths.append(pdf_path)
             logger.info(f"Fichiers PDF téléversés : {pdf_paths}")
-        
         # Classer les CV
-        ranked_cvs = cv_matcher.rank_cvs(job_desc, resumes, is_pdf=bool(files), pdf_paths=pdf_paths, is_scanned=is_scanned)
+        ranked_cvs = cv_matcher.rank_cvs(job_desc, resumes, is_pdf=bool(pdf_paths), pdf_paths=pdf_paths, is_scanned=is_scanned)
         logger.info(f"Classement terminé : {len(ranked_cvs)} CV classés")
-
         # Préparer la réponse
+        def get_url_from_path(cv_path):
+            if url_to_local and cv_path in url_to_local:
+                return url_to_local[cv_path]
+            return cv_path
         results = [
-            RankingResponse(rank=i + 1, cv=cv_path, score=float(score))
+            RankingResponse(rank=i + 1, cv=get_url_from_path(cv_path), score=float(score))
             for i, (cv_path, score) in enumerate(ranked_cvs)
         ]
         return results
