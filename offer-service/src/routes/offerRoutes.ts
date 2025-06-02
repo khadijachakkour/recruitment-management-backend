@@ -6,7 +6,7 @@ import {
   updateOfferController,
   deleteOfferController,
   getAllOffersController,
-  countOffersByRecruiterController, // Ajout du contrôleur
+  countOffersByRecruiterController, 
 } from "../controllers/offerController";
 
 const router = express.Router();

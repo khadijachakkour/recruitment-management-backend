@@ -25,7 +25,6 @@ export const getOffersByRecruiterController = async (req: Request, res: Response
     const userId = req.params.userId;
     const offers = await getOffersByRecruiter(userId);
     res.status(200).json(offers);
-    console.log(offers);
   } catch (error: any) {
     console.error("Erreur lors de la récupération des offres:", error.message);
     res.status(500).json({ error: error.message });
