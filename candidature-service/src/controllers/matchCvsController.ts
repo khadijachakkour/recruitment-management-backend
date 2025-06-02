@@ -35,6 +35,7 @@ export const matchCvsController = async (req: Request, res: Response): Promise<v
       }
       return {
         ...item,
+        id: candidature?.id,
         candidate_id: candidature?.candidate_id,
         firstName,
         lastName,

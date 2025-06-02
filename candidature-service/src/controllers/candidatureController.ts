@@ -126,3 +126,34 @@ export const countCandidaturesByOfferId = async (req: Request, res: Response): P
     res.status(500).json({ message: "Erreur serveur", error });
   }
 };
+
+export const updateCandidature = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const [count, updated] = await Candidature.update(req.body, {
+      where: { id: req.params.id },
+      returning: true
+    });
+    if (!updated || !updated[0]) {
+      res.status(404).json({ error: 'Candidature non trouvée' });
+      return;
+    }
+    res.json(updated[0]);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(400).json({ error: errorMessage });
+  }
+};
+
+// Récupérer une candidature par son ID
+export const getCandidatureById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidature = await Candidature.findByPk(req.params.id);
+    if (!candidature) {
+      res.status(404).json({ error: 'Candidature non trouvée' });
+      return;
+    }
+    res.status(200).json(candidature);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error });
+  }
+};

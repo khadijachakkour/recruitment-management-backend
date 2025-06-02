@@ -7,7 +7,7 @@ class Candidature extends Model{
     candidate_id!: string;
     cvUrl!: string;
     coverLetterUrl?: string | null;
-    status?: "en_attente" | "acceptee" | "refusee";
+    status?: "en_attente" |"selectionnee_entretien" | "acceptee" | "refusee";
     date_soumission?: Date;    
 }
 
@@ -35,7 +35,7 @@ Candidature.init(
         allowNull: true, 
       },
       status: {
-        type: DataTypes.ENUM("en_attente", "acceptee", "refusee"),
+        type: DataTypes.ENUM("en_attente", "selectionnee_entretien", "acceptee", "refusee"),
         allowNull: false,
         defaultValue: "en_attente",
       },
@@ -50,11 +50,11 @@ Candidature.init(
       modelName: "Candidature",
       tableName: "candidatures",
       underscored: true,
-      timestamps: false, // désactive les champs automatiques createdAt / updatedAt
+      timestamps: false, 
       indexes: [
         {
           unique: true,
-          fields: ["offer_id", "candidate_id"], // empêche les doublons
+          fields: ["offer_id", "candidate_id"], 
         },
       ],
     }
