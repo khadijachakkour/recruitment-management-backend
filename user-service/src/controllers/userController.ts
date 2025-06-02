@@ -6,7 +6,6 @@ import UserProfile from "../models/CandidatProfile";
 import { createUser } from "../services/AdminService";
 import { createUserInKeycloak } from "../services/keycloakService";
 import { getUserIdFromResetToken } from "../utils/jwtUtils";
-import { getUserProfile } from "../services/profileService";
 
 
 
@@ -373,8 +372,8 @@ export const getCurrentUserId = async (req: Request, res: Response): Promise<voi
 };
 
 
-//Recuperer le profile de l'admin
-export const getProfileAdmin = async (req: Request, res: Response): Promise<void> => {
+//Recuperer le profile de l'utilisateur
+export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserIdFromToken(req);
 
@@ -461,5 +460,54 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur par ID:", error);
     res.status(500).json({ message: "Erreur lors de la récupération de l'utilisateur", error });
+  }
+};
+
+export const updateCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      res.status(401).json({ message: "Token invalide ou manquant" });
+      return;
+    }
+    const { firstname, lastname, email, username, password } = req.body;
+    const token = await authenticateClient();
+    // Préparer les données à mettre à jour
+    const updateData: any = {};
+    if (firstname) updateData.firstName = firstname;
+    if (lastname) updateData.lastName = lastname;
+    if (email) updateData.email = email;
+    if (username) updateData.username = username;
+    // Mettre à jour les infos de base
+    if (Object.keys(updateData).length > 0) {
+      await axios.put(
+        `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
+        updateData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    }
+    // Mettre à jour le mot de passe si fourni
+    if (password) {
+      await axios.put(
+        `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/reset-password`,
+        {
+          type: "password",
+          value: password,
+          temporary: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+    res.status(200).json({ message: "Profil utilisateur mis à jour avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du profil utilisateur:", error);
+    res.status(500).json({ message: "Erreur lors de la mise à jour du profil utilisateur" });
   }
 };

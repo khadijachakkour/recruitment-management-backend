@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getProfileAdmin, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById } from "../controllers/userController";
+import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById, getUserProfile, updateCurrentUser } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 import { authenticateUser } from "../middlewares/authMiddleware";
@@ -40,11 +40,12 @@ router.post("/reset-password", resetPassword);
 router.get('/count-by-role/:userId',authenticateUser, getUsersCountByRoleHandler);
 router.get("/userId", getCurrentUserId);
 
-router.get("/profileAdmin", getProfileAdmin);
+router.get("/UserProfile", getUserProfile);
 
-// Nouvelle route pour la répartition des utilisateurs par rôle
+// Route pour la répartition des utilisateurs par rôle
 router.get("/statistics/recruitment-distribution", getRecruitmentDistribution);
 
+router.put("/updateProfileCurrentUser", updateCurrentUser);
 
 
 export default router;
