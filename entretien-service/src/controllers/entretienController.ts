@@ -1,22 +1,39 @@
 import { Request, Response } from 'express';
 import * as entretienService from '../services/entretienService';
 import axios from 'axios';
+import { publishKafkaEvent } from '../kafkaProducer';
 
 export const createEntretien = async (req: Request, res: Response) => {
   try {
-    // S'assurer que candidatureId est bien fourni
-    const { candidatureId } = req.body;
+    const { candidatureId, candidatId } = req.body;
     if (!candidatureId) {
       return res.status(400).json({ error: 'candidatureId requis pour planifier un entretien' });
     }
-    // Vérifier qu'aucun entretien n'est déjà planifié pour cette candidature
+    if (!candidatId) {
+      return res.status(400).json({ error: 'candidatId requis pour planifier un entretien' });
+    }
+
     const candidatureIdStr = String(candidatureId);
     const existing = await entretienService.getEntretienByCandidature(candidatureIdStr);
     if (existing) {
       return res.status(409).json({ error: 'Un entretien est déjà planifié pour cette candidature' });
     }
-    // Créer l'entretien
-    const entretien = await entretienService.createEntretien({ ...req.body, candidatureId: candidatureIdStr });
+
+    let jitsiUrl = undefined;
+    if (req.body.type === 'Visio') {
+      const random = Math.random().toString(36).substring(2, 10);
+      jitsiUrl = `https://meet.jit.si/entretien-${Date.now()}-${random}`;
+    }
+
+    const entretien = await entretienService.createEntretien({ ...req.body, candidatureId: candidatureIdStr, jitsiUrl });
+    await publishKafkaEvent('entretien_planifie', {
+      candidatureId: candidatureIdStr,
+      entretienId: entretien.id,
+      date: entretien.date,
+      type: entretien.type,
+      candidatId: String(candidatId), // S'assurer que c'est une chaîne
+    });
+
     res.status(201).json(entretien);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);

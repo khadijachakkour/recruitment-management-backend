@@ -12,6 +12,7 @@ export class Entretien extends Model {
   public recruteurId!: string;
   public candidatureId!: string;
   public statut!: EntretienStatut;
+  public jitsiUrl?: string;
 }
 
 Entretien.init(
@@ -31,7 +32,7 @@ Entretien.init(
     },
     lieu: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true, 
     },
     recruteurId: {
       type: DataTypes.STRING,
@@ -44,6 +45,10 @@ Entretien.init(
     statut: {
       type: DataTypes.ENUM('Planifie', 'Termine', 'Annule'),
       allowNull: false,
+    },
+    jitsiUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

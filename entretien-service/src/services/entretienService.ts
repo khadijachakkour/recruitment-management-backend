@@ -7,6 +7,7 @@ export const createEntretien = async (data: {
   recruteurId: string;
   candidatureId: string;
   statut: EntretienStatut;
+  jitsiUrl?: string;
 }) => {
   return await Entretien.create(data);
 };
