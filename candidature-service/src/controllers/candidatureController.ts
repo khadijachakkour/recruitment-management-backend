@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import cloudinary from "../utils/cloudinary";
 import Candidature from "../models/candidature";
 import streamifier from "streamifier";
+import { publishKafkaEvent } from '../kafkaProducer';
 
 import { getUserIdFromToken } from "../services/CandidatureService";
 
@@ -136,6 +137,13 @@ export const updateCandidature = async (req: Request, res: Response): Promise<vo
     if (!updated || !updated[0]) {
       res.status(404).json({ error: 'Candidature non trouvée' });
       return;
+    }
+    // Publier un événement Kafka si la candidature est refusée
+    if (req.body.status === 'refusee') {
+      await publishKafkaEvent('candidature_refusee', {
+        candidatureId: req.params.id,
+        candidatId: updated[0].candidate_id // à adapter selon votre modèle
+      });
     }
     res.json(updated[0]);
   } catch (err) {
