@@ -20,7 +20,16 @@ export const kafkaConsumer = async (io: any) => {
 
       switch (topic) {
         case 'entretien_planifie':
-          notificationMessage = `Entretien planifié pour le ${event.date}`;
+          let dateStr = '';
+          if (event.date) {
+            const dateObj = new Date(event.date);
+            const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
+            const datePart = dateObj.toLocaleDateString('fr-FR', options);
+            const hour = dateObj.getHours().toString().padStart(2, '0');
+            const minute = dateObj.getMinutes().toString().padStart(2, '0');
+            dateStr = `${datePart} à ${hour}h${minute}`;
+          }
+          notificationMessage = `Votre entretien pour le poste de ${event.offer_title ?? '...'} est programmé le ${dateStr}.`;
           break;
         case 'candidature_refusee':
           notificationMessage = `Votre candidature a été refusée`;
