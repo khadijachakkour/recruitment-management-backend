@@ -29,7 +29,11 @@ export const kafkaConsumer = async (io: any) => {
             const minute = dateObj.getMinutes().toString().padStart(2, '0');
             dateStr = `${datePart} à ${hour}h${minute}`;
           }
-          notificationMessage = `Votre entretien pour le poste de ${event.offer_title ?? '...'} est programmé le ${dateStr}.`;
+          const recruteurName = event.recruteurName || 'le recruteur';
+          notificationMessage = `Votre entretien pour le poste ${event.offer_title ?? '...'} est programmé le ${dateStr} avec ${recruteurName}.`;
+          if (event.type === 'Visio' && event.jitsiUrl) {
+            notificationMessage += ` Il se déroulera en visioconférence. Vous pouvez y accéder via le lien suivant :`;
+          }
           break;
         case 'candidature_refusee':
           notificationMessage = `Votre candidature a été refusée`;
@@ -43,6 +47,7 @@ export const kafkaConsumer = async (io: any) => {
         const notification = await Notification.create({
           candidatId: event.candidatId,
           message: notificationMessage,
+          url: event.jitsiUrl ?? null,
           createdAt: new Date(),
           read: false,
         });

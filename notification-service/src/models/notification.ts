@@ -1,12 +1,13 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/dbConfig";
 
-export class Notification extends Model {
+class Notification extends Model {
   public id!: number;
   public candidatId!: string;
   public message!: string;
   public createdAt!: Date;
   public read!: boolean;
+  public url!: string;
 }
 
 Notification.init(
@@ -26,6 +27,10 @@ Notification.init(
     message: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    url: { 
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,

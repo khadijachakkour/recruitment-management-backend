@@ -28,7 +28,7 @@ io.on('connection', (socket) => {
 const startServer = async () => {
   try {
     await initDb();
-    await sequelize.sync({ force: false }); // Synchronisation sans modifier la table
+    await sequelize.sync({ alter: true });
     console.log('Base de données synchronisée avec succès.');
 
     server.listen(process.env.PORT, () => {
