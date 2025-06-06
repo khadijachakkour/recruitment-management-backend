@@ -24,13 +24,11 @@ export const createCompanyProfile = async (req: Request, res: Response): Promise
   }
 };
 
-
 export const getCompanyProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ message: "Utilisateur non authentifié" });
-      return;
-    }
+      return; }
 
     const userId = req.user.id;
     const company = await companyService.getCompanyProfile(userId);
@@ -66,18 +64,16 @@ export const updateCompanyProfile = async (req: Request, res: Response): Promise
   }
 };
 
-
-
 export const checkCompanyProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id; // L'ID de l'utilisateur récupéré depuis Keycloak
+    const userId = req.user?.id; 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
-      return; // 🚀 Ajout d'un return pour éviter l'exécution de la suite
+      return; 
     }
 
     const hasProfile = await companyService.hasCompanyProfile(userId);
-    res.json({ hasCompanyProfile: hasProfile }); // ✅ Envoie la réponse sans return explicite
+    res.json({ hasCompanyProfile: hasProfile }); 
   } catch (error) {
     console.error("Erreur lors de la vérification du profil d'entreprise:", error);
     res.status(500).json({ message: "Erreur interne du serveur" });
@@ -121,7 +117,6 @@ export const getCompanyByAdminId = async (req: Request, res: Response): Promise<
       ceoImage: company.ceoImage,
       revenue: company.revenue,
 
-      // 🔽 Liste des départements associés à l'entreprise
       departments: company.departments?.map((dept) => ({
         id: dept.id,
         name: dept.name,
@@ -133,11 +128,9 @@ export const getCompanyByAdminId = async (req: Request, res: Response): Promise<
   }
 };
 
-
-
 export const assignDepartmentsToUser = async (req: Request, res: Response): Promise<void> => {
-  const { userId } = req.params; // ID de l'utilisateur provenant de Keycloak
-  const { departments } = req.body; // Liste des noms de départements
+  const { userId } = req.params; 
+  const { departments } = req.body; 
 
   if (!Array.isArray(departments)) {
     res.status(400).json({ message: "Aucun département fourni." });
@@ -145,7 +138,6 @@ export const assignDepartmentsToUser = async (req: Request, res: Response): Prom
   }
 
   try {
-    // Vérifier si l'utilisateur existe dans Keycloak
     const token = await authenticateClient();
     const userResponse = await axios.get(
       `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
@@ -189,7 +181,7 @@ export const assignDepartmentsToUser = async (req: Request, res: Response): Prom
 
     // Récupérer les départements actuellement associés à l'utilisateur
     const currentAssociations = await UserDepartments.findAll({
-      where: { user_id: userId }, // Filtrer uniquement par l'utilisateur spécifique
+      where: { user_id: userId }, 
     });
     console.log(currentAssociations);
 
@@ -228,8 +220,6 @@ export const assignDepartmentsToUser = async (req: Request, res: Response): Prom
 export const deleteUserDepartments = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-
-    // Supprimer les départements associés à l'utilisateur
     await UserDepartments.deleteByUserId(userId);
 
     res.status(200).json({ message: "Départements de l'utilisateur supprimés avec succès" });
@@ -244,28 +234,25 @@ export const getUserDepartments = async (req: Request, res: Response): Promise<v
   try {
     const { userId } = req.params;
 
-    // Vérifier si l'ID utilisateur est fourni
     if (!userId) {
       res.status(400).json({ message: "L'ID de l'utilisateur est requis." });
       return;
     }
 
-    // Récupérer les départements associés à l'utilisateur
     const userDepartments = await UserDepartments.findAll({
       where: { user_id: userId },
       include: [
         {
           model: Department,
-          as: "Department", // Utiliser l'alias défini dans l'association
-          attributes: ["id", "name"], // Inclure uniquement les champs nécessaires
+          as: "Department", 
+          attributes: ["id", "name"], 
         },
       ],
     });
 
-    // Formater la réponse
     const departments = userDepartments.map((ud) => ({
       id: ud.department_id,
-      name: ud.Department?.name, // Accéder au nom du département via l'association
+      name: ud.Department?.name, 
     }));
 
     res.status(200).json(departments);
@@ -319,5 +306,19 @@ export const getCompanyById = async (req: Request, res: Response): Promise<void>
   } catch (err) {
     console.error("Erreur lors de la récupération de l'entreprise par ID :", err);
     res.status(500).json({ message: "Erreur serveur." });
+  }
+};
+
+export const getCompanyByUserId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.userId;
+    const company = await Company.findOne({ where: { user_id: userId } });
+    if (!company) {
+      res.status(404).json({ message: "Entreprise introuvable pour cet utilisateur." });
+      return;
+    }
+    res.json({ name: company.companyName});
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération de l'entreprise." });
   }
 };

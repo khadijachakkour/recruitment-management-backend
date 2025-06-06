@@ -5,10 +5,6 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import companyRoutes from "./routes/companyRoutes";
 import sequelize from "./config/dbConfig";
-import Company from "./models/Company";
-import Department from "./models/Department";
-import UserDepartments from "./models/UserDepartments";
-
 
 
 const app = express();
@@ -32,5 +28,5 @@ const syncDb = async () => {
 syncDb();
 
 app.listen(process.env.PORT, () => {
-  console.log(`🚀 Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
+  console.log(`Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
 });
