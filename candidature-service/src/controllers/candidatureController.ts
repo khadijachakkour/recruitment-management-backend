@@ -5,6 +5,7 @@ import streamifier from "streamifier";
 import { publishKafkaEvent } from '../kafkaProducer';
 
 import { getUserIdFromToken } from "../services/CandidatureService";
+import axios from "axios";
 
 export interface MulterRequest extends Request {
   files?: {
@@ -140,12 +141,34 @@ export const updateCandidature = async (req: Request, res: Response): Promise<vo
     }
     // Publier un événement Kafka si la candidature est refusée
     if (req.body.status === 'refusee') {
+      // Récupérer la candidature pour obtenir l'ID de l'offre
+  const candidature = updated[0];
+  let offerTitle = '';
+    const offerRes = await axios.get(`http://localhost:8081/api/offers/offerById/${candidature.offer_id}`);
+    offerTitle = offerRes.data.title || '';
+
       await publishKafkaEvent('candidature_refusee', {
         candidatureId: req.params.id,
-        candidatId: updated[0].candidate_id // à adapter selon votre modèle
+        candidatId: updated[0].candidate_id,
+        offer_title: offerTitle
       });
     }
+
+    if (req.body.status === 'acceptee') {
+  const candidature = updated[0];
+  
+  let offerTitle = '';
+    const offerRes = await axios.get(`http://localhost:8081/api/offers/offerById/${candidature.offer_id}`);
+    offerTitle = offerRes.data.title || '';
+
+  await publishKafkaEvent('candidature_acceptee', {
+    candidatureId: req.params.id,
+    candidatId: candidature.candidate_id,
+    offer_title: offerTitle
+  });
+}
     res.json(updated[0]);
+
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     res.status(400).json({ error: errorMessage });
