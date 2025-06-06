@@ -4,7 +4,7 @@ const JWT_SECRET = process.env.RESET_PASSWORD_SECRET || "defaultSecret";
 
 export function generateResetToken(userId: string): string {
   return jwt.sign(
-    { sub: userId }, // sub = subject (standard claim)
+    { sub: userId },
     JWT_SECRET,
     { expiresIn: "24h" }
   );

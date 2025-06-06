@@ -75,7 +75,7 @@ export async function authenticateClient(): Promise<string> {
       );
   
       console.log(`Utilisateur ${userData.username} inscrit avec l'ID ${userId} et le rôle ${userData.role}`);
-      return { id: userId }; // 👈 Retourner l'ID Keycloak
+      return { id: userId }; 
     } catch (error: any) {
       console.error("Erreur lors de la création de l'utilisateur dans Keycloak:", error.response?.data || error.message);
       throw error;

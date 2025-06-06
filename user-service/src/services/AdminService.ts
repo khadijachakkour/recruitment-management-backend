@@ -10,7 +10,7 @@ import { authenticateClient } from "./keycloakService";
 
 dotenv.config();
 
-async function sendResetEmail(email: string, token: string) {
+export async function sendResetEmail(email: string, token: string) {
   const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
 
   const transporter = nodemailer.createTransport({
@@ -44,7 +44,7 @@ async function sendResetEmail(email: string, token: string) {
 export async function getCompanyByAdminId(IdAdmin: string): Promise<{ id: string, name?: string }> {
   try {
     const response = await axios.get(`http://localhost:5000/api/companies/by-admin/${IdAdmin}`);
-    return response.data; // Assure-toi que l'API retourne un objet avec au moins `id`
+    return response.data; 
   } catch (error: any) {
     console.error("Erreur dans getCompanyByAdminId:", error.response?.data || error.message);
     throw new Error("Impossible de récupérer la company liée à l'admin.");
@@ -59,9 +59,7 @@ export async function createUser(userData: {
   role: string;
 }, IdAdmin: string,): Promise<{ id: string, resetToken: string }> {
   try {
-    // Authentification de l'utilisateur une seule fois
     const token = await authenticateClient();
-   // 🏢 Récupération de l'id de la company via ta fonction perso
   const adminCompany = await getCompanyByAdminId(IdAdmin);
   const companyId = adminCompany.id;
     // Effectuer les deux requêtes de manière parallèle pour gagner du temps
@@ -87,7 +85,6 @@ export async function createUser(userData: {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Attendre que les deux requêtes soient terminées
     const [createResponse, roleResp] = await Promise.all([userCreationPromise, rolePromise]);
 
     const userId = createResponse.headers.location?.split("/").pop();

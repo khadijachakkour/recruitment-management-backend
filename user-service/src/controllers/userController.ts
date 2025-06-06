@@ -8,25 +8,21 @@ import { createUserInKeycloak } from "../services/keycloakService";
 import { getUserIdFromResetToken } from "../utils/jwtUtils";
 
 
-
 dotenv.config();
 
-
-export const registerCandidat = async (req: Request, res: Response): Promise<void> => {  // Retour de type void, car la réponse est envoyée via res
+export const registerCandidat = async (req: Request, res: Response): Promise<void> => {  
   try {
     const { firstname, lastname, username, email, password } = req.body;
     const role = "Candidat"; 
 
-    // Création de l'utilisateur dans Keycloak
     const keycloakUser = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
 
     if (!keycloakUser || !keycloakUser.id) {
       res.status(500).json({ message: "Erreur lors de la création de l'utilisateur dans Keycloak" });
-      return;  // Retour explicite après envoi de la réponse
+      return;  
     }
 
-    const keycloakUserId = keycloakUser.id; // Récupération de l'ID Keycloak
-
+    const keycloakUserId = keycloakUser.id; 
     // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
     await UserProfile.create({ user_id: keycloakUserId });
 
@@ -37,14 +33,12 @@ export const registerCandidat = async (req: Request, res: Response): Promise<voi
   }
 };
 
-
 // Inscription d'un admin entreprise (assignation automatique du rôle "Admin")
-export const registerAdmin = async (req: Request, res: Response): Promise<void> => {  // Retour de type void, car la réponse est envoyée via res
+export const registerAdmin = async (req: Request, res: Response): Promise<void> => {  
   try {
     const { firstname, lastname, username, email, password } = req.body;
-    const role = "Admin"; // Assignation automatique du rôle
+    const role = "Admin"; 
 
-    // Création de l'utilisateur dans Keycloak
     const keycloakUser = await createUserInKeycloak({ firstname, lastname, username, email, password, role });
 
     if (!keycloakUser || !keycloakUser.id) {
@@ -53,17 +47,14 @@ export const registerAdmin = async (req: Request, res: Response): Promise<void> 
     
       const keycloakUserId = keycloakUser.id; 
 
-    // Créer un profil vide dans PostgreSQL avec l'ID Keycloak comme user_id
-    await UserProfile.create({ user_id: keycloakUserId });
+      await UserProfile.create({ user_id: keycloakUserId });
 
-    res.status(201).json({ message: "Candidat inscrit avec succès", user_id: keycloakUserId });
+    res.status(201).json({ message: "Admin inscrit avec succès", user_id: keycloakUserId });
   } catch (error) {
-    console.error("Erreur d'inscription du candidat :", error);
-    res.status(500).json({ message: "Erreur d'inscription du candidat", error });
+    console.error("Erreur d'inscription du admin :", error);
+    res.status(500).json({ message: "Erreur d'inscription du admin", error });
   }
 };
-
-
 
 export const loginWithEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -72,7 +63,6 @@ export const loginWithEmail = async (req: Request, res: Response, next: NextFunc
       res.status(400).json({ message: "Email et mot de passe sont requis." });
       return;
     }
-
     const params = new URLSearchParams({
       grant_type: "password",
       client_id: process.env.KEYCLOAK_CLIENT_ID as string,
@@ -81,7 +71,6 @@ export const loginWithEmail = async (req: Request, res: Response, next: NextFunc
       password: password,
     });
 
-    // Effectuer la requête à Keycloak
     const response = await axios.post(
       `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
       params,
@@ -141,7 +130,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
   } catch (error: any) {
     if (axios.isAxiosError(error) && error.response) {
       if (error.response.status === 400 && error.response.data.error === "invalid_grant") {
-        res.clearCookie("refresh_token", { path: "/api/users/refresh-token" }); 
+        res.clearCookie("refresh_token", { path: "/" }); 
         res.status(401).json({ message: "Session expirée, veuillez vous reconnecter." });
       } else {
         res.status(error.response.status).json({ message: error.response.data.error_description || "Erreur d'authentification." });
@@ -152,18 +141,15 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-//Gestion des utilisateurs par Admin
-
 //Endpoint pour récupérer les utilisateurs sauf ceux avec les rôles 'candidate' et 'admin'
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const token = await authenticateClient(); // Authentification
+    const token = await authenticateClient(); 
     const adminId = getUserIdFromToken(req);
     if (!adminId) {
       res.status(401).json({ message: "Token invalide ou manquant" });
       return;
     }
-    // Étape 1: Récupérer tous les utilisateurs
     const usersResponse = await axios.get(
       `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
       {
@@ -173,7 +159,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
     const users = usersResponse.data;
 
-    // Étape 2: Pour chaque utilisateur, récupérer ses rôles et filtrer
     const filteredUsers: any[] = [];
 
     for (const user of users) {
@@ -189,11 +174,8 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       );
 
       const userRoles = rolesResponse.data.map((role: { name: string }) => role.name.toLowerCase());
-      // Filtrer le rôle par défaut
       const filteredRoles = userRoles.filter((role: string) => role !== 'default-roles-apprecrutement');
-      // Assignation des rôles filtrés
       user.role = filteredRoles;
-      // Exclure les utilisateurs avec le rôle 'admin' ou 'candidate'
       if (!userRoles.includes('admin') && !userRoles.includes('candidat')) {
         const departmentsResponse = await axios.get(
           `http://localhost:5000/api/companies/user-departments/${user.id}`
@@ -212,8 +194,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-
-
 export const createRecruteurManagerRH = async (req: Request, res: Response): Promise<void> => {
   try {
     const { firstname, lastname, username, email, role } = req.body;
@@ -226,7 +206,6 @@ export const createRecruteurManagerRH = async (req: Request, res: Response): Pro
 
     const user = await createUser({ firstname, lastname, username, email, role }, adminId);
 
-    // Retourner l'ID de l'utilisateur créé
     res.status(201).json({ userId: user.id });
   } catch (error: any) {
     console.error("Erreur dans createRecruteurManagerRH:", error?.response?.data || error.message || error);
@@ -235,14 +214,11 @@ export const createRecruteurManagerRH = async (req: Request, res: Response): Pro
   
 }
 
-// Dans ton controller Node.js
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   const { token, password } = req.body;
 
-  try {
-    // 🔒 Vérifier le token dans ta DB ou cache
-    
-    const userId = await getUserIdFromResetToken(token); // à implémenter selon ton stockage
+  try {    
+    const userId = await getUserIdFromResetToken(token); 
     if (!userId) {
        res.status(400).json({ message: "Token invalide ou expiré" });
        return;
@@ -283,8 +259,8 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-// Appeler le microservice company pour supprimer les départements associés
-await axios.delete(
+
+    await axios.delete(
   `http://localhost:5000/api/companies/user-departments/${userId}`
 );
     res.status(200).json({ message: "Utilisateur supprimé avec succès" });
@@ -295,13 +271,11 @@ await axios.delete(
 };
 
 
-
 export async function getUsersCountByRole(userId: string): Promise<Record<string, number>> {
   const token = await authenticateClient();
   const roles = ['Recruteur', 'Manager', 'RH'];
   const result: Record<string, number> = {};
 
-  // Récupérer tous les utilisateurs
   const response = await axios.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
     headers: { Authorization: `Bearer ${token}` },
     params: {
@@ -332,7 +306,7 @@ export async function getUsersCountByRole(userId: string): Promise<Record<string
             count++;
           }
         } catch (err) {
-          console.warn(`⚠️ Erreur lors de la récupération des rôles pour ${user.username}:`);
+          console.warn(`Erreur lors de la récupération des rôles pour ${user.username}:`);
         }
       }
     }
@@ -343,8 +317,6 @@ export async function getUsersCountByRole(userId: string): Promise<Record<string
   return result;
 }
 
-
-// Handler Express
 export async function getUsersCountByRoleHandler(req: Request, res: Response) {
   try {
     const { userId } = req.params;
@@ -357,12 +329,9 @@ export async function getUsersCountByRoleHandler(req: Request, res: Response) {
   }
 }
 
-
-
 export const getCurrentUserId = async (req: Request, res: Response): Promise<void> => {
+  
   const userId = getUserIdFromToken(req);
-
-
   if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
     return;
@@ -404,7 +373,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Nouvelle route pour la répartition des utilisateurs par rôle
+//Route pour la répartition des utilisateurs par rôle
 export const getRecruitmentDistribution = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = getUserIdFromToken(req);
@@ -472,13 +441,11 @@ export const updateCurrentUser = async (req: Request, res: Response): Promise<vo
     }
     const { firstname, lastname, email, username, password } = req.body;
     const token = await authenticateClient();
-    // Préparer les données à mettre à jour
     const updateData: any = {};
     if (firstname) updateData.firstName = firstname;
     if (lastname) updateData.lastName = lastname;
     if (email) updateData.email = email;
     if (username) updateData.username = username;
-    // Mettre à jour les infos de base
     if (Object.keys(updateData).length > 0) {
       await axios.put(
         `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}`,
@@ -488,7 +455,6 @@ export const updateCurrentUser = async (req: Request, res: Response): Promise<vo
         }
       );
     }
-    // Mettre à jour le mot de passe si fourni
     if (password) {
       await axios.put(
         `${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/reset-password`,

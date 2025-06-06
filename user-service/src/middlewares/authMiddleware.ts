@@ -22,7 +22,7 @@ export function authenticateUser(req: Request, res: Response, next: NextFunction
     }
 
     req.user = { id: decoded.sub };
-    next(); // ✅ On passe bien au middleware suivant
+    next(); 
   } catch (error) {
     res.status(401).json({ message: "Token invalide" });
   }
