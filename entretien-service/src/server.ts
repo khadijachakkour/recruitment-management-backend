@@ -29,5 +29,5 @@ const syncDb = async () => {
 syncDb();
 
 app.listen(process.env.PORT, () => {
-  console.log(`🚀 Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
+  console.log(`Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
 });

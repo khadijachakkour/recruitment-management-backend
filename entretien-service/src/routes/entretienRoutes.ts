@@ -22,4 +22,6 @@ router.get('/candidature/:candidatureId', entretienController.getEntretienByCand
 // Récupérer tous les entretiens planifiés par un recruteur
 router.get('/recruteur/:recruteurId', entretienController.getEntretiensByRecruteur);
 
+router.get('/by-jitsi-url', entretienController.getEntretienIdByJitsiUrl);
+
 export default router;

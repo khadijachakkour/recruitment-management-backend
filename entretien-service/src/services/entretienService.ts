@@ -40,3 +40,9 @@ export const getEntretienByCandidature = async (candidatureId: string) => {
 export const getEntretiensByRecruteur = async (recruteurId: string) => {
   return await Entretien.findAll({ where: { recruteurId } });
 };
+
+
+export const getEntretienByJitsiUrl = async (jitsiUrl: string) => {
+  return await Entretien.findOne({ where: { jitsiUrl } });
+};
+

@@ -5,7 +5,7 @@ import { publishKafkaEvent } from '../kafkaProducer';
 
 export const createEntretien = async (req: Request, res: Response) => {
   try {
-    const { candidatureId, candidatId, recruteurName } = req.body;
+    const { candidatureId, candidatId, recruteurName, companyName } = req.body;
     if (!candidatureId) {
       return res.status(400).json({ error: 'candidatureId requis pour planifier un entretien' });
     }
@@ -25,7 +25,6 @@ export const createEntretien = async (req: Request, res: Response) => {
       jitsiUrl = `https://meet.jit.si/entretien-${Date.now()}-${random}`;
     }
 
-    // Récupérer le titre de l'offre
     let offer_title = '';
     try {
       // Récupérer la candidature pour obtenir l'ID de l'offre
@@ -39,6 +38,7 @@ export const createEntretien = async (req: Request, res: Response) => {
       offer_title = '';
     }
     const entretien = await entretienService.createEntretien({ ...req.body, candidatureId: candidatureIdStr, jitsiUrl });
+
     await publishKafkaEvent('entretien_planifie', {
       candidatureId: candidatureIdStr,
       entretienId: entretien.id,
@@ -48,6 +48,8 @@ export const createEntretien = async (req: Request, res: Response) => {
       offer_title,
       jitsiUrl,
       recruteurName,
+      companyName, 
+      lieu: entretien.lieu,
     });
 
     res.status(201).json(entretien);
@@ -132,6 +134,22 @@ export const getEntretiensByRecruteur = async (req: Request, res: Response) => {
       })
     );
     res.json(enriched);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(400).json({ error: errorMessage });
+  }
+};
+
+
+export const getEntretienIdByJitsiUrl = async (req: Request, res: Response) => {
+  try {
+    const { url } = req.query;
+    if (!url) {
+      return res.status(400).json({ error: 'Paramètre url requis' });
+    }
+    const entretien = await entretienService.getEntretienByJitsiUrl(String(url));
+    if (!entretien) return res.status(404).json({ error: 'Entretien non trouvé' });
+    res.json({ id: entretien.id });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     res.status(400).json({ error: errorMessage });
