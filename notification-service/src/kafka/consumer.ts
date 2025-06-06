@@ -12,6 +12,8 @@ export const kafkaConsumer = async (io: any) => {
   await consumer.connect();
   await consumer.subscribe({ topic: 'entretien_planifie', fromBeginning: false });
   await consumer.subscribe({ topic: 'candidature_refusee', fromBeginning: false });
+  await consumer.subscribe({ topic: 'candidature_acceptee', fromBeginning: false });
+
 
   await consumer.run({
     eachMessage: async ({ topic, message }: EachMessagePayload) => {
@@ -30,14 +32,23 @@ export const kafkaConsumer = async (io: any) => {
             dateStr = `${datePart} à ${hour}h${minute}`;
           }
           const recruteurName = event.recruteurName || 'le recruteur';
-          notificationMessage = `Votre entretien pour le poste ${event.offer_title ?? '...'} est programmé le ${dateStr} avec ${recruteurName}.`;
+          const companyName = event.companyName;
+          notificationMessage = `Votre entretien pour le poste ${event.offer_title ?? '...'}${companyName ? ` chez ${companyName}` : ''} est programmé le ${dateStr} avec ${recruteurName}.`;
           if (event.type === 'Visio' && event.jitsiUrl) {
             notificationMessage += ` Il se déroulera en visioconférence. Vous pouvez y accéder via le lien suivant :`;
-          }
+          } else if (event.type === 'Presentiel' && event.lieu) {
+    notificationMessage += ` Il aura lieu à l'adresse suivante : ${event.lieu}`;
+  }
           break;
+
         case 'candidature_refusee':
-          notificationMessage = `Votre candidature a été refusée`;
+        notificationMessage = `Nous vous remercions d'avoir postulé au poste "${event.offer_title ?? '...'}". Après une étude attentive de votre candidature, nous sommes au regret de vous informer que votre profil n'a pas été retenu pour ce poste. Nous vous souhaitons une bonne continuation dans vos recherches et restons à votre disposition pour de futures opportunités.`;
           break;
+          
+        case 'candidature_acceptee':
+        notificationMessage = `Félicitations ! Votre candidature pour le poste "${event.offer_title ?? '...'}" a été retenue. Notre équipe vous contactera prochainement pour la suite du processus.`;
+        break;
+        
         default:
           notificationMessage = `Événement inconnu: ${JSON.stringify(event)}`;
       }
