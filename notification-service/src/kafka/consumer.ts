@@ -1,14 +1,13 @@
 import { Kafka, EachMessagePayload } from 'kafkajs';
 import Notification from '../models/notification';
 
-const kafka = new Kafka({
+export const kafkaConsumer = async (io: any) => {
+  const kafka = new Kafka({
   clientId: 'notification-service',
   brokers: ['localhost:9092'],
 });
 
 const consumer = kafka.consumer({ groupId: 'notification-group' });
-
-export const kafkaConsumer = async (io: any) => {
   await consumer.connect();
   await consumer.subscribe({ topic: 'entretien_planifie', fromBeginning: false });
   await consumer.subscribe({ topic: 'candidature_refusee', fromBeginning: false });
