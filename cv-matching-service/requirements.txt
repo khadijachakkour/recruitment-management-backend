@@ -16,3 +16,5 @@ matplotlib
 seaborn
 python-Levenshtein
 fastapi[all]
+pytest
+httpx

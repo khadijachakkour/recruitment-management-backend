@@ -5,7 +5,9 @@
   "scripts": {
     "start": "ts-node src/server.ts",
     "dev": "nodemon src/server.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:integration": "jest --testPathPattern=tests/integration"
   },
   "dependencies": {
     "@types/sequelize": "^4.28.20",

@@ -41,6 +41,4 @@ export function getUserIdFromToken(req: Request): string | null {
       console.error("Erreur de décodage du token:", error);
       return null;
     }
-
-
 }

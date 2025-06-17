@@ -44,9 +44,17 @@ class RankingResponse(BaseModel):
 async def rank_cvs(
     job_desc: str = Form(...),
     files: List[UploadFile] = File(None),
-    resumes: List[str] = Form(None),
+    resumes: List[str]= Form(None),
     is_scanned: bool = Form(False)
 ):
+
+# Validation stricte
+    if (not resumes or all(r.strip() == "" for r in resumes)) and not files:
+        logger.error("Aucun CV fourni")
+        raise HTTPException(status_code=400, detail="Fournissez au moins un CV (PDF ou texte)")
+    if files and resumes and any(r.strip() for r in resumes):
+        logger.error("CV PDF et texte fournis simultanément")
+        raise HTTPException(status_code=400, detail="Fournissez soit des fichiers PDF, soit du texte, pas les deux")
     """
     Classe les CV en fonction de leur pertinence pour une description de poste.
     Accepte des CV sous forme de fichiers PDF, de texte brut, ou d'URLs PDF.
@@ -58,13 +66,6 @@ async def rank_cvs(
         logger.error("Description de poste vide")
         raise HTTPException(status_code=400, detail="La description de poste est requise")
     
-    if not files and not resumes:
-        logger.error("Aucun CV fourni")
-        raise HTTPException(status_code=400, detail="Fournissez au moins un CV (PDF ou texte)")
-    
-    if files and resumes:
-        logger.error("CV PDF et texte fournis simultanément")
-        raise HTTPException(status_code=400, detail="Fournissez soit des fichiers PDF, soit du texte, pas les deux")
 
     temp_dir = "temp_cvs"
     pdf_paths = None
@@ -117,6 +118,8 @@ async def rank_cvs(
         ]
         return results
 
+    except HTTPException as e:
+         raise e
     except Exception as e:
         logger.error(f"Erreur lors du classement : {e}")
         raise HTTPException(status_code=500, detail=str(e))

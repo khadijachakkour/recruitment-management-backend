@@ -9,12 +9,10 @@ export const createCompanyProfile = async (userId: string, companyData: any) => 
       throw new Error("L'utilisateur a déjà une entreprise.");
     }
 
-    // Récupère les départements depuis les données
     const { departments, ...companyFields } = companyData;
 
     const company = await Company.create({ ...companyFields, user_id: userId });
 
-    // Crée les départements si fournis
     if (Array.isArray(departments) && departments.length > 0) {
       const departmentRecords = departments.map((dept: string) => ({
         name: dept,
@@ -22,7 +20,6 @@ export const createCompanyProfile = async (userId: string, companyData: any) => 
       }));
       await Department.bulkCreate(departmentRecords);
     }
-
     return company;
   } catch (error) {
     throw new Error(
@@ -46,7 +43,6 @@ export const getCompanyProfile = async (userId: string) => {
   }
 };
 
-
 export const updateCompanyProfile = async (userId: string, companyData: any) => {
   try {
     const company = await Company.getCompanyByUserId(userId);
@@ -56,33 +52,26 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
 
     const { departments, ...companyFields } = companyData;
 
-    // Mise à jour du profil entreprise
     await company.update(companyFields);
 
-    // Mise à jour des départements (si présents)
     if (Array.isArray(departments)) {
-      // Récupérer les départements existants pour cette entreprise
       const existingDepartments = await Department.findAll({
         where: { company_id: company.id },
       });
     
-      // Identifier les départements à supprimer
       const departmentsToRemove = existingDepartments.filter(
         (existingDept) => !departments.includes(existingDept.name)
       );
     
-      // Identifier les départements à ajouter
       const departmentsToAdd = departments.filter(
         (newDept) => !existingDepartments.some((existingDept) => existingDept.name === newDept)
       );
     
-      // Supprimer les départements qui ne sont plus nécessaires
       if (departmentsToRemove.length > 0) {
         const departmentIdsToRemove = departmentsToRemove.map((dept) => dept.id);
         await Department.destroy({ where: { id: departmentIdsToRemove } });
       }
     
-      // Ajouter les nouveaux départements
       if (departmentsToAdd.length > 0) {
         const newDepartments = departmentsToAdd.map((dept: string) => ({
           name: dept,
@@ -91,7 +80,6 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
         await Department.bulkCreate(newDepartments);
       }
     }
-    // Recharger avec les départements
     const updatedCompany = await Company.findOne({
       where: { id: company.id },
       include: [{ model: Department, as: "departments" }],
@@ -106,14 +94,12 @@ export const updateCompanyProfile = async (userId: string, companyData: any) => 
   }
 };
 
-
-
 export const hasCompanyProfile = async (userId: string): Promise<boolean> => {
   try {
     const existingCompany = await Company.getCompanyByUserId(userId);
-    return existingCompany !== null; // Renvoie true si l'admin a une entreprise, sinon false
+    return existingCompany !== null; 
   } catch (error) {
     console.error("Erreur lors de la vérification du profil d'entreprise:", error);
-    return false; // En cas d'erreur, on suppose qu'il n'a pas d'entreprise
+    return false; 
   }
 };

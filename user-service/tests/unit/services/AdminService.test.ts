@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import * as jwtUtils from "../../../src/utils/jwtUtils";
 import * as keycloakService from "../../../src/services/keycloakService";
-import * as AdminService from "../../../src/services/AdminService"; // Import du module complet
+import * as AdminService from "../../../src/services/AdminService"; 
 
 // Masquer les logs d'erreur pendant les tests
 beforeAll(() => {

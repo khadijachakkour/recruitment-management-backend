@@ -4,18 +4,16 @@ import Department from "./Department";
 
 class UserDepartments extends Model {
     public id!: number;
-    public user_id!: string; // ID de l'utilisateur provenant de Keycloak
-    public department_id!: number; // ID du département
+    public user_id!: string; 
+    public department_id!: number; 
 
     public Department?: Department; 
-    // Méthode pour supprimer les départements d'un utilisateur
     static async deleteByUserId(userId: string): Promise<void> {
       await UserDepartments.destroy({
           where: { user_id: userId },
       });
   }
 
-  // Association avec le modèle Department
   public static associations: {
     department: Association<UserDepartments, Department>;
 };

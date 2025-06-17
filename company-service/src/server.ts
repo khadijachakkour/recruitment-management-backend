@@ -1,20 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import companyRoutes from "./routes/companyRoutes";
+
+import app from "./app";
 import sequelize from "./config/dbConfig";
-
-
-const app = express();
-
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
-app.use(bodyParser.json());
-app.use(express.json());
-
-app.use("/api/companies", companyRoutes);
-
 
 const syncDb = async () => {
   try {
@@ -25,8 +13,12 @@ const syncDb = async () => {
   }
 };
 
-syncDb();
+const startServer = async () => {
+  await syncDb();
 
-app.listen(process.env.PORT, () => {
-  console.log(`Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
-});
+  app.listen(process.env.PORT, () => {
+    console.log(`Serveur en cours d'exécution sur http://localhost:${process.env.PORT}`);
+  });
+};
+
+startServer();
