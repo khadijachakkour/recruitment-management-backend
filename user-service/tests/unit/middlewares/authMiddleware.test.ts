@@ -1,6 +1,13 @@
 import { authenticateUser } from "../../../src/middlewares/authMiddleware";
 import jwt from "jsonwebtoken";
 
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 jest.mock("jsonwebtoken");
 
 describe("authenticateUser middleware", () => {

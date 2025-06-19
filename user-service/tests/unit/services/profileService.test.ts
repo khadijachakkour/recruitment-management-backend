@@ -1,6 +1,13 @@
 import * as profileService from "../../../src/services/profileService";
 import UserProfile from "../../../src/models/CandidatProfile";
 
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 jest.mock("../../../src/models/CandidatProfile");
 
 describe("profileService", () => {

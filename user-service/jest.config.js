@@ -6,7 +6,6 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: "node",
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   collectCoverage: true,
   coverageReporters: ["text", "lcov"],
   testMatch: [
