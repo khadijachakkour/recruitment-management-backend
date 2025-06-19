@@ -67,15 +67,8 @@ afterAll(async () => {
   }
 });
 
-afterEach(async () => {
-  try {
-    await sequelize.query('TRUNCATE TABLE "user_departments" CASCADE;');
-    await sequelize.query('TRUNCATE TABLE "departments" CASCADE;');
-    await sequelize.query('TRUNCATE TABLE "companies" CASCADE;');
-  } catch (error) {
-    console.error('Erreur lors du nettoyage des tables :', error);
-    throw error;
-  }
+beforeEach(async () => {
+  await sequelize.sync({ force: true });
 });
 
 describe("Tests d'intégration - Routes Company", () => {
