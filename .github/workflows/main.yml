@@ -10,6 +10,21 @@ jobs:
   test-node-services:
     name: Test Node.js Microservices
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: company_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: khadija
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
     strategy:
       matrix:
         service:
@@ -60,6 +75,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Install spaCy models
+        run: |
+          python -m spacy download fr_core_news_sm
+          python -m spacy download en_core_web_sm
 
       - name: Run unit tests
         run: |
