@@ -1,6 +1,16 @@
 import * as jwtUtils from "../../../src/utils/jwtUtils";
 import jwt from "jsonwebtoken";
 
+
+// Masquer les logs d'erreur pendant les tests
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 jest.mock("jsonwebtoken");
 
 describe("jwtUtils", () => {

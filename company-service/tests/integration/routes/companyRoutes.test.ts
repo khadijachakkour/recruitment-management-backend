@@ -7,12 +7,18 @@ import Department from '../../../src/models/Department';
 import { authenticateUser } from '../../../src/middleware/authMiddleware';
 
 
+let originalConsoleError: typeof console.error;
+
 beforeAll(() => {
+  originalConsoleError = console.error;
   jest.spyOn(console, "error").mockImplementation(() => {});
 });
+
 afterAll(() => {
-  (console.error as jest.Mock).mockRestore();
+  (console.error as jest.Mock).mockRestore?.();
+  console.error = originalConsoleError;
 });
+
 
 // Mock du middleware d'authentification
 jest.mock('../../../src/middleware/authMiddleware', () => ({
