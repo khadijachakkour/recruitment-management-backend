@@ -1,6 +1,14 @@
 import * as entretienService from '../../../src/services/entretienService';
 import { Entretien } from '../../../src/models/Entretien';
 
+
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 jest.mock('../../../src/models/Entretien');
 
 const mockEntretien = {

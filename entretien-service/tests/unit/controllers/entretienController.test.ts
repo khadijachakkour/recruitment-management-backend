@@ -3,6 +3,13 @@ import * as entretienService from '../../../src/services/entretienService';
 import { publishKafkaEvent } from '../../../src/kafkaProducer';
 import axios from 'axios';
 
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 jest.mock('../../../src/services/entretienService');
 jest.mock('../../../src/kafkaProducer');
 jest.mock('axios');

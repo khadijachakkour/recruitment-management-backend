@@ -6,6 +6,14 @@ import Company from '../../../src/models/Company';
 import Department from '../../../src/models/Department';
 import { authenticateUser } from '../../../src/middleware/authMiddleware';
 
+
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 // Mock du middleware d'authentification
 jest.mock('../../../src/middleware/authMiddleware', () => ({
   authenticateUser: jest.fn((req, res, next) => {

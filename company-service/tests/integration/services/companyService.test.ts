@@ -3,6 +3,12 @@ import sequelize from '../../../src/config/dbConfig';
 import Company from '../../../src/models/Company';
 import Department from '../../../src/models/Department';
 
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
 
 describe('Tests d\'intégration - companyService', () => {
   beforeAll(async () => {
