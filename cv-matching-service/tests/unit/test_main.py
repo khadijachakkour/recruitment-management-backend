@@ -5,7 +5,8 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
-from main import app
+with patch("models.cv_matcher.CVMatcher", MagicMock()):
+     from main import app
 
 client = TestClient(app)
 
