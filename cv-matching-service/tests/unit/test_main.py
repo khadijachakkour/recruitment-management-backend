@@ -1,12 +1,9 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../app')))
 import io
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
-with patch("models.cv_matcher.CVMatcher", MagicMock()):
-     from main import app
+with patch("app.models.cv_matcher.CVMatcher", MagicMock()):
+     from app.main import app
 
 client = TestClient(app)
 
@@ -17,7 +14,7 @@ def mock_cv_matcher(monkeypatch):
         ("temp_cvs/0_cv1.pdf", 0.9),
         ("temp_cvs/1_cv2.pdf", 0.8)
     ]
-    monkeypatch.setattr("main.cv_matcher", mock)
+    monkeypatch.setattr("app.main.cv_matcher", mock)
     yield
 
 def test_health_check():
@@ -74,7 +71,7 @@ def test_rank_cvs_valid_resumes_text():
     assert "cv" in result[0]
     assert "score" in result[0]
 
-@patch("main.requests.get")
+@patch("app.main.requests.get")
 def test_rank_cvs_valid_resumes_pdf_urls(mock_get):
     # Mock du téléchargement PDF
     mock_resp = MagicMock()
@@ -121,7 +118,7 @@ def test_rank_cvs_empty_job_desc():
 def test_rank_cvs_exception_handling(monkeypatch):
     def raise_exception(*args, **kwargs):
         raise Exception("Erreur interne")
-    monkeypatch.setattr("main.cv_matcher.rank_cvs", raise_exception)
+    monkeypatch.setattr("app.main.cv_matcher.rank_cvs", raise_exception)
     data = {
         "job_desc": "test job",
         "resumes": ["CV1 text"],

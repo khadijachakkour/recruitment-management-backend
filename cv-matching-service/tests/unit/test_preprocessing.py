@@ -1,9 +1,6 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../app')))
 import pytest
 from unittest.mock import patch, MagicMock
-from utils.preprocessing import clean_and_anonymize_text, extract_text_from_pdf, segment_cv
+from app.utils.preprocessing import clean_and_anonymize_text, extract_text_from_pdf, segment_cv
 
 def test_clean_and_anonymize_text():
     text = "Contact: 0612345678, mail: test@mail.com, site: https://test.com"
@@ -12,7 +9,7 @@ def test_clean_and_anonymize_text():
     assert "test@mail.com" not in cleaned
     assert "https://test.com" not in cleaned
 
-@patch("utils.preprocessing.pdfplumber.open")
+@patch("app.utils.preprocessing.pdfplumber.open")
 def test_extract_text_from_pdf_text(mock_pdfplumber):
     # Simule un PDF non scanné avec du texte
     mock_pdf = MagicMock()
@@ -21,8 +18,8 @@ def test_extract_text_from_pdf_text(mock_pdfplumber):
     result = extract_text_from_pdf("dummy.pdf", is_scanned=False)
     assert "Ceci est un CV." in result
 
-@patch("utils.preprocessing.pdfplumber.open")
-@patch("utils.preprocessing.pytesseract.image_to_string", return_value="Texte OCR")
+@patch("app.utils.preprocessing.pdfplumber.open")
+@patch("app.utils.preprocessing.pytesseract.image_to_string", return_value="Texte OCR")
 def test_extract_text_from_pdf_scanned(mock_ocr, mock_pdfplumber):
     # Simule un PDF scanné (pas de texte, OCR utilisé)
     mock_page = MagicMock()
@@ -34,8 +31,8 @@ def test_extract_text_from_pdf_scanned(mock_ocr, mock_pdfplumber):
     result = extract_text_from_pdf("dummy.pdf", is_scanned=True)
     assert "Texte OCR" in result
 
-@patch("utils.preprocessing.spacy.load")
-@patch("utils.preprocessing.detect", return_value="fr")
+@patch("app.utils.preprocessing.spacy.load")
+@patch("app.utils.preprocessing.detect", return_value="fr")
 def test_segment_cv(mock_detect, mock_spacy_load):
     # Simule un modèle spaCy qui segmente en phrases
     mock_nlp = MagicMock()
