@@ -11,4 +11,8 @@ app.use(express.json());
 
 app.use("/api/companies", companyRoutes);
 
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
+
 export default app;

@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import logging
-from utils.preprocessing import segment_cv, extract_text_from_pdf
+from app.utils.preprocessing import segment_cv, extract_text_from_pdf
 
 logger = logging.getLogger(__name__)
 
