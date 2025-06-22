@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById, getUserProfile, updateCurrentUser } from "../controllers/userController";
+import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById, getUserProfile, updateCurrentUser, logout } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 import { authenticateUser } from "../middlewares/authMiddleware";
@@ -14,14 +14,19 @@ router.post("/register/candidat", registerCandidat);
 router.post("/register/admin", registerAdmin);
 
 
-router.post("/login", loginWithEmail);
+router.post("/login", (req, res, next) => {
+  console.log("[USER-SERVICE][ROUTE] POST /login appelée avec body :", req.body);
+  next();
+}, loginWithEmail);
+
+router.post("/logout", logout);
 
 router.post("/refresh-token", refreshToken);
 
 router.get("/profile", getProfile);
 router.put("/updateprofile", updateProfile);
 
-router.post("/upload-cv", upload.single("cv"), uploadCv); // nouvelle route pour le CV
+router.post("/upload-cv", upload.single("cv"), uploadCv); 
 router.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
 router.delete("/delete-avatar", deleteAvatar);
 router.delete("/delete-cv", deleteCv);

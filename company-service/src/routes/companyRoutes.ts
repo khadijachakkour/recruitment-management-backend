@@ -1,4 +1,3 @@
-// routes/companyRoutes.ts
 import { Router } from "express";
 import { assignDepartmentsToUser, checkCompanyProfile, createCompanyProfile, deleteUserDepartments, getCompanyByAdminId, getCompanyById, getCompanyByUserId, getCompanyProfile, getUserDepartments, updateCompanyProfile } from "../controllers/companyController";
 import { authenticateUser } from "../middleware/authMiddleware";

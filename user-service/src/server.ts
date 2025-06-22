@@ -12,6 +12,11 @@ import Consul from "consul";
 
 const app = express();
 
+app.use((req, res, next) => {
+  console.log(`[USER-SERVICE] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Configuration des middlewares
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(bodyParser.json());
@@ -19,39 +24,12 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Déclarer les routes
-app.use("/api/users", userRoutes);
+app.use("/api/users", (req: Request, res: Response, next) => {
+  console.log(`[USER-SERVICE] ${req.method} ${req.originalUrl}`);
+  next();
+}, userRoutes);
+
 app.use("/api/admin", userRoutes);
-
-
-// Route de déconnexion
-app.post("/logout", (req: Request, res: Response): void => {
-  (async () => {
-    try {
-      const refreshToken = req.cookies?.refresh_token;
-
-      if (!refreshToken) {
-        res.status(400).json({ message: "Aucun refresh token trouvé" });
-        return;
-      }
-
-      await axios.post(
-        `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout`,
-        new URLSearchParams({
-          client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-          client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-          refresh_token: refreshToken,
-        }),
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-      );
-
-      res.clearCookie("refresh_token", { httpOnly: true, path: "/" });
-      res.status(200).json({ message: "Déconnexion réussie" });
-    } catch (error: any) {
-      console.error("Erreur lors de la déconnexion:", error.response?.data || error.message);
-      res.status(500).json({ message: "Erreur lors de la déconnexion" });
-    }
-  })();
-});
 
 // --- AJOUT CONSUL ---
 const CONSUL_HOST = process.env.CONSUL_HOST;

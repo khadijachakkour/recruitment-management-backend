@@ -15,7 +15,7 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
-app.use('/api', notificationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // --- Ajout du endpoint health check ---
 app.get("/health", (req: Request, res: Response) => {

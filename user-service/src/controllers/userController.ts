@@ -57,7 +57,8 @@ export const registerAdmin = async (req: Request, res: Response): Promise<void> 
 };
 
 export const loginWithEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
+    console.log("[USER-SERVICE][CONTROLLER] loginWithEmail appelée avec body :", req.body);
+    try {
     const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ message: "Email et mot de passe sont requis." });
@@ -475,5 +476,34 @@ export const updateCurrentUser = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error("Erreur lors de la mise à jour du profil utilisateur:", error);
     res.status(500).json({ message: "Erreur lors de la mise à jour du profil utilisateur" });
+  }
+};
+
+
+// Implémentation de la route /logout
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const refreshToken = req.cookies?.refresh_token;
+
+    if (!refreshToken) {
+      res.status(400).json({ message: "Aucun refresh token trouvé" });
+      return;
+    }
+
+    await axios.post(
+      `${process.env.KEYCLOAK_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout`,
+      new URLSearchParams({
+        client_id: process.env.KEYCLOAK_CLIENT_ID as string,
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
+        refresh_token: refreshToken,
+      }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    res.clearCookie("refresh_token", { httpOnly: true, path: "/" });
+    res.status(200).json({ message: "Déconnexion réussie" });
+  } catch (error: any) {
+    console.error("Erreur lors de la déconnexion:", error.response?.data || error.message);
+    res.status(500).json({ message: "Erreur lors de la déconnexion" });
   }
 };
