@@ -3,24 +3,18 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import Consul from "consul";
 import dotenv from "dotenv";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
-
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-
-// --- Rate Limiting Middleware (ex: 100 requêtes par 15 minutes par IP)
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limite chaque IP à 100 requêtes par fenêtre
-  standardHeaders: true, // Retourne les headers RateLimit
-  legacyHeaders: false, // Désactive les headers X-RateLimit
-  message: "Trop de requêtes depuis cette IP, veuillez réessayer plus tard.",
-});
-app.use(apiLimiter);
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"], 
+  })
+);
 
 const consul = new Consul({
   host: process.env.CONSUL_HOST || "localhost",
