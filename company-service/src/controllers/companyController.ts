@@ -97,7 +97,7 @@ export const getCompanyByAdminId = async (req: Request, res: Response): Promise<
     res.json({
       id: company.id,
       name: company.companyName,
-      logo: company.companyLogo,
+      companyLogo: company.companyLogo,
       industry: company.industry,
       otherIndustry: company.otherIndustry,
       description: company.companyDescription,

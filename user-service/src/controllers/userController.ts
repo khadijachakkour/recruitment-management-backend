@@ -3,7 +3,7 @@ import axios from "axios";
 import {authenticateClient, getUserIdFromToken } from "../services/keycloakService";
 import dotenv from "dotenv";
 import UserProfile from "../models/CandidatProfile";
-import { createUser } from "../services/AdminService";
+import { createUser, getCompanyByAdminId } from "../services/AdminService";
 import { createUserInKeycloak } from "../services/keycloakService";
 import { getUserIdFromResetToken } from "../utils/jwtUtils";
 
@@ -383,7 +383,6 @@ export const getRecruitmentDistribution = async (req: Request, res: Response): P
       return;
     }
     const token = await authenticateClient();
-    // Récupérer tous les utilisateurs
     const response = await axios.get(`${process.env.KEYCLOAK_SERVER_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
       headers: { Authorization: `Bearer ${token}` },
       params: { max: 1000 },
@@ -505,5 +504,49 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   } catch (error: any) {
     console.error("Erreur lors de la déconnexion:", error.response?.data || error.message);
     res.status(500).json({ message: "Erreur lors de la déconnexion" });
+  }
+};
+
+
+//Nombre d’offres d’emploi de l’entreprise de l’admin
+export const getOffersCountForAdminCompany = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const adminId = getUserIdFromToken(req);
+    if (!adminId) {
+      res.status(401).json({ message: "Token invalide ou manquant" });
+      return;
+    }
+    // Récupérer la company liée à l'admin
+    const company = await getCompanyByAdminId(adminId);
+    if (!company?.id) {
+      res.status(404).json({ message: "Entreprise non trouvée pour cet admin" });
+      return;
+    }
+    // Appel à offer-service pour compter les offres de cette company
+    const offersRes = await axios.get(`http://localhost:8081/api/offers/count/by-company/${company.id}`);
+    res.json({ companyId: company.id, offerCount: offersRes.data.count });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération du nombre d'offres", error });
+  }
+};
+
+//Lister toutes les offres d’emploi de la company de l’admin
+export const getOffersForAdminCompany = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const adminId = getUserIdFromToken(req);
+    if (!adminId) {
+      res.status(401).json({ message: "Token invalide ou manquant" });
+      return;
+    }
+    const company = await getCompanyByAdminId(adminId);
+    if (!company?.id) {
+      res.status(404).json({ message: "Entreprise non trouvée pour cet admin" });
+      return;
+    }
+    // Appel à offer-service pour récupérer les offres de cette company
+    const offersRes = await axios.get(`http://localhost:8081/api/offers/by-company/${company.id}`);
+    res.json(offersRes.data);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération des offres", error });
   }
 };

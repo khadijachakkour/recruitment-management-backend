@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById, getUserProfile, updateCurrentUser, logout } from "../controllers/userController";
+import {createRecruteurManagerRH, deleteUser, getCurrentUserId, getUsers, getUsersCountByRoleHandler, loginWithEmail, refreshToken, registerAdmin,registerCandidat, resetPassword, getRecruitmentDistribution, getUserById, getUserProfile, updateCurrentUser, logout, getOffersCountForAdminCompany, getOffersForAdminCompany } from "../controllers/userController";
 import { deleteAvatar, deleteCv, getProfile, updateProfile, uploadAvatar, uploadCv } from "../controllers/profileController";
 import upload from "../middlewares/upload";
 import { authenticateUser } from "../middlewares/authMiddleware";
@@ -38,7 +38,6 @@ router.post("/users", createRecruteurManagerRH);
 router.delete("/users/:userId", deleteUser); 
 router.get("/userbyId/:userId", getUserById); 
 
-
 //Reset password
 router.post("/reset-password", resetPassword);
 
@@ -52,5 +51,6 @@ router.get("/statistics/recruitment-distribution", getRecruitmentDistribution);
 
 router.put("/updateProfileCurrentUser", updateCurrentUser);
 
-
+router.get("/dashboard/offers-count", authenticateUser, getOffersCountForAdminCompany);
+router.get("/dashboard/offers", authenticateUser, getOffersForAdminCompany);
 export default router;

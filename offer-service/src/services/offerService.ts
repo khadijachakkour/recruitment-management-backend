@@ -114,3 +114,12 @@ export const getAllOffers = async () => {
 export const countOffersByRecruiter = async (userId: string) => {
   return await Offer.count({ where: { userId } });
 };
+
+
+export const countOffersByCompany = async (companyId: number) => {
+  return await Offer.count({ where: { companyId } });
+};
+
+export const getOffersByCompany = async (companyId: number) => {
+  return await Offer.findAll({ where: { companyId } });
+};

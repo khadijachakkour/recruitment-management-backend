@@ -6,7 +6,9 @@ import {
   updateOffer,
   deleteOffer,
   getAllOffers,
-  countOffersByRecruiter, // Ajout de la fonction
+  countOffersByRecruiter,
+  countOffersByCompany,
+  getOffersByCompany, // Ajout de la fonction
 } from "../services/offerService";
 
 export const createOfferController = async (req: Request, res: Response) => {
@@ -86,6 +88,34 @@ export const countOffersByRecruiterController = async (req: Request, res: Respon
     res.status(200).json({ userId, offerCount: count });
   } catch (error: any) {
     console.error("Erreur lors du comptage des offres:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const countOffersByCompanyController = async (req: Request, res: Response) => {
+  try {
+    const companyId = parseInt(req.params.companyId, 10);
+    if (isNaN(companyId)) {
+      res.status(400).json({ message: "companyId invalide" });
+      return;
+    }
+    const count = await countOffersByCompany(companyId);
+    res.status(200).json({ companyId, count });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getOffersByCompanyController = async (req: Request, res: Response) => {
+  try {
+    const companyId = parseInt(req.params.companyId, 10);
+    if (isNaN(companyId)) {
+      res.status(400).json({ message: "companyId invalide" });
+      return;
+    }
+    const offers = await getOffersByCompany(companyId);
+    res.status(200).json(offers);
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };

@@ -6,7 +6,9 @@ import {
   updateOfferController,
   deleteOfferController,
   getAllOffersController,
-  countOffersByRecruiterController, 
+  countOffersByRecruiterController,
+  countOffersByCompanyController,
+  getOffersByCompanyController, 
 } from "../controllers/offerController";
 
 const router = express.Router();
@@ -18,6 +20,8 @@ router.put("/:id", updateOfferController);
 router.delete("/delete/:id", deleteOfferController);
 router.get("/all", getAllOffersController);
 router.get("/by-recruiter/:userId", getOffersByRecruiterController);
-router.get("/count-by-recruiter/:userId", countOffersByRecruiterController); // Nouvelle route
+router.get("/count-by-recruiter/:userId", countOffersByRecruiterController); 
+router.get("/count/by-company/:companyId", countOffersByCompanyController);
+router.get("/by-company/:companyId", getOffersByCompanyController);
 
 export default router;
