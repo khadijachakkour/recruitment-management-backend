@@ -188,3 +188,18 @@ export const getCandidatureById = async (req: Request, res: Response): Promise<v
     res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
+
+
+export const getCandidaturesByCandidateId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidate_id = getUserIdFromToken(req);
+    if (!candidate_id) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+    const candidatures = await Candidature.findAll({ where: { candidate_id } });
+    res.status(200).json(candidatures);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+};

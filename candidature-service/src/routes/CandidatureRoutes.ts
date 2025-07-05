@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../middlewares/upload"; 
-import {postulerOffre, getCandidaturesByOfferId, countCandidaturesByOfferId, updateCandidature, getCandidatureById } from "../controllers/candidatureController";
+import {postulerOffre, getCandidaturesByOfferId, countCandidaturesByOfferId, updateCandidature, getCandidatureById, getCandidaturesByCandidateId } from "../controllers/candidatureController";
 import { matchCvsController } from "../controllers/matchCvsController";
 
 const router = express.Router();
@@ -13,10 +13,12 @@ router.get("/by-offer/:offerId", getCandidaturesByOfferId);
 router.get("/count/by-offer/:offerId", countCandidaturesByOfferId);
 router.get("/match-cvs/:offerId", matchCvsController);
 
-// Récupérer une candidature par son ID
-router.get('/:id', getCandidatureById);
-
 // Modifier une candidature par ID
 router.patch('/update/:id', updateCandidature);
+
+router.get("/by-candidate", getCandidaturesByCandidateId);
+
+// Récupérer une candidature par son ID
+router.get('/:id', getCandidatureById);
 
 export default router;

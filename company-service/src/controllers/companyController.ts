@@ -322,3 +322,14 @@ export const getCompanyByUserId = async (req: Request, res: Response): Promise<v
     res.status(500).json({ message: "Erreur lors de la récupération de l'entreprise." });
   }
 };
+
+export const getAllCompanies = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const companies = await Company.findAll({
+      include: [{ model: Department, as: "departments" }]
+    });
+    res.status(200).json(companies);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération des entreprises." });
+  }
+};

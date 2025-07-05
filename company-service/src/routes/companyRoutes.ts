@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { assignDepartmentsToUser, checkCompanyProfile, createCompanyProfile, deleteUserDepartments, getCompanyByAdminId, getCompanyById, getCompanyByUserId, getCompanyProfile, getUserDepartments, updateCompanyProfile } from "../controllers/companyController";
+import { assignDepartmentsToUser, checkCompanyProfile, createCompanyProfile, deleteUserDepartments, getAllCompanies, getCompanyByAdminId, getCompanyById, getCompanyByUserId, getCompanyProfile, getUserDepartments, updateCompanyProfile } from "../controllers/companyController";
 import { authenticateUser } from "../middleware/authMiddleware";
 
 const router = Router();
@@ -15,4 +15,6 @@ router.delete("/user-departments/:userId", deleteUserDepartments);
 router.get("/user-departments/:userId", getUserDepartments);
 router.get("/company/:id",getCompanyById);
 router.get('/by-user/:userId', getCompanyByUserId);
+router.get("/all", getAllCompanies);
+
 export default router;
