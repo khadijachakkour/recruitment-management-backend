@@ -1,0 +1,35 @@
+# Fichiers de modèle et de vocabulaire
+*.pt
+*.pkl
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Fichiers temporaires Jupyter/Colab
+*.ipynb_checkpoints
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+ENV/
+
+# Fichiers systèmes
+.DS_Store
+Thumbs.db
+
+# Dossiers de logs ou temporaires
+logs/
+tmp/
+*.log
+
+# Google Drive monté
+/content/drive/
+
+
+# fichiers générés par matplotlib
+*.png
+*.jpg
+*.svg
